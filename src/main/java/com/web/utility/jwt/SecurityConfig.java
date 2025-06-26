@@ -40,9 +40,9 @@ public class SecurityConfig {
 
 		return http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("member/landingPageData", "/member/signup", "/member/login", "/member/sendOtp",
-								"/member/validateOtp", "/member/forgotPassword", "/member/contactUs", "/images/**")
-						.permitAll().requestMatchers("/h2-console/**").permitAll().requestMatchers("/admin/**")
+						.requestMatchers("/member/landingPageData", "/member/signup", "/member/login", "/member/sendOtp",
+								"/member/validateOtp", "/member/forgotPassword", "/member/contactUs")
+						.permitAll().requestMatchers("/admin/**")
 						.hasRole("ADMIN").requestMatchers("/user/**").hasRole("USER").requestMatchers("/member")
 						.hasAnyRole("ADMIN", "USER").anyRequest().authenticated())
 				.exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint)
