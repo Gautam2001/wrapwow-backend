@@ -35,10 +35,8 @@ import com.web.entity.MemberEntity.AccountStatus;
 import com.web.entity.OrderEntity;
 import com.web.entity.OrderItemEntity;
 import com.web.entity.ProductEntity;
-import com.web.entity.ProductImagesEntity;
 import com.web.entity.ProductPriceEntity;
 import com.web.service.UserService;
-import com.web.utility.AppConfigProperties;
 import com.web.utility.DataConstants;
 
 import jakarta.transaction.Transactional;
@@ -46,9 +44,6 @@ import jakarta.validation.Valid;
 
 @Service
 public class UserServiceImpl implements UserService {
-
-	@Autowired
-	private AppConfigProperties appConfig;
 
 	@Autowired
 	private MemberDao memberDao;
@@ -108,7 +103,6 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public Map<String, Object> getProductList() {
 		Map<String, Object> response = new HashMap<>();
-		String baseurl = appConfig.getBaseURL();
 		try {
 			List<CategoriesEntity> categories = categoriesDao.findAll();
 			List<ProductEntity> products = productDao.findAll();
@@ -127,21 +121,6 @@ public class UserServiceImpl implements UserService {
 					product -> product.getCategory() != null && activeCategoryNames.contains(product.getCategory()))
 					.collect(Collectors.toList());
 
-			for (ProductEntity product : filteredProducts) {
-				if (product.getImages() != null) {
-					for (ProductImagesEntity image : product.getImages()) {
-						String fullPath = image.getPath();
-						if (fullPath.startsWith("http")) {
-							continue;
-						}
-
-						String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-						String folder = fullPath.split("\\\\")[2];
-						String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-						image.setPath(imageUrl);
-					}
-				}
-			}
 			List<ProductListDTOUser> dtoList = filteredProducts.stream().map(p -> {
 				Double minPrice = p.getPrices().stream().map(ProductPriceEntity::getFinalPrice).min(Double::compareTo)
 						.orElse(null);
@@ -161,28 +140,12 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Map<String, Object> getBestSellingProductList() {
 		Map<String, Object> response = new HashMap<>();
-		String baseurl = appConfig.getBaseURL();
 		try {
 			PageRequest pageRequest = PageRequest.of(0, 5);
 			List<ProductEntity> products = productDao.getTopSellingProducts(pageRequest);
 			if (products.isEmpty()) {
 				return prepareResponse(response, "No products found.", false);
 			} else {
-				for (ProductEntity product : products) {
-					if (product.getImages() != null) {
-						for (ProductImagesEntity image : product.getImages()) {
-							String fullPath = image.getPath();
-							if (fullPath.startsWith("http")) {
-								continue;
-							}
-
-							String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-							String folder = fullPath.split("\\\\")[2];
-							String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-							image.setPath(imageUrl);
-						}
-					}
-				}
 				List<ProductListDTOUser> dtoList = products.stream().map(p -> {
 					Double minPrice = p.getPrices().stream().map(ProductPriceEntity::getFinalPrice)
 							.min(Double::compareTo).orElse(null);
@@ -202,28 +165,12 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Map<String, Object> getMostExpensiveProductList() {
 		Map<String, Object> response = new HashMap<>();
-		String baseurl = appConfig.getBaseURL();
 		try {
 			PageRequest pageRequest = PageRequest.of(0, 5);
 			List<ProductEntity> products = productDao.getMostExpensiveProducts(pageRequest);
 			if (products.isEmpty()) {
 				return prepareResponse(response, "No products found.", false);
 			} else {
-				for (ProductEntity product : products) {
-					if (product.getImages() != null) {
-						for (ProductImagesEntity image : product.getImages()) {
-							String fullPath = image.getPath();
-							if (fullPath.startsWith("http")) {
-								continue;
-							}
-
-							String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-							String folder = fullPath.split("\\\\")[2];
-							String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-							image.setPath(imageUrl);
-						}
-					}
-				}
 				List<ProductListDTOUser> dtoList = products.stream().map(p -> {
 					Double minPrice = p.getPrices().stream().map(ProductPriceEntity::getFinalPrice)
 							.min(Double::compareTo).orElse(null);
@@ -243,26 +190,13 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Map<String, Object> getProductById(@Valid long productId) {
 		Map<String, Object> response = new HashMap<>();
-		String baseurl = appConfig.getBaseURL();
 		try {
 			Optional<ProductEntity> productOpt = productDao.findById(productId);
 			if (productOpt.isEmpty()) {
 				return prepareResponse(response, "No product for the product id found.", false);
 			} else {
 				ProductEntity product = productOpt.get();
-				if (product.getImages() != null) {
-					for (ProductImagesEntity image : product.getImages()) {
-						String fullPath = image.getPath();
-						if (fullPath.startsWith("http")) {
-							continue;
-						}
 
-						String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-						String folder = fullPath.split("\\\\")[2];
-						String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-						image.setPath(imageUrl);
-					}
-				}
 				response.put("Product", product);
 				return prepareResponse(response, "Product fetched successfully.", true);
 			}
@@ -351,7 +285,6 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	public Map<String, Object> getCart(@Valid String email) {
 		Map<String, Object> response = new HashMap<>();
-		String baseurl = appConfig.getBaseURL();
 
 		try {
 			Optional<MemberEntity> userOptional = memberDao.getUserByEmail(email);
@@ -371,18 +304,6 @@ public class UserServiceImpl implements UserService {
 
 			for (CartEntity cartItem : cart) {
 				ProductEntity product = cartItem.getProduct();
-
-				if (product.getImages() != null) {
-					for (ProductImagesEntity image : product.getImages()) {
-						String fullPath = image.getPath();
-						if (!fullPath.startsWith("http")) {
-							String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-							String folder = fullPath.split("\\\\")[2];
-							String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-							image.setPath(imageUrl);
-						}
-					}
-				}
 
 				long priceId = cartItem.getPriceId();
 				Optional<ProductPriceEntity> priceOptional = priceDao.findById(priceId);
@@ -633,7 +554,6 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Map<String, Object> getOrders(@Valid String email) {
 		Map<String, Object> response = new HashMap<>();
-		String baseurl = appConfig.getBaseURL();
 
 		try {
 			Optional<MemberEntity> userOptional = memberDao.getUserByEmail(email);
@@ -663,19 +583,6 @@ public class UserServiceImpl implements UserService {
 
 				for (OrderItemEntity orderItem : order.getItems()) {
 					ProductEntity product = orderItem.getProduct();
-
-					// Convert image paths to URLs
-					if (product.getImages() != null) {
-						for (ProductImagesEntity image : product.getImages()) {
-							String fullPath = image.getPath();
-							if (!fullPath.startsWith("http")) {
-								String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-								String folder = fullPath.split("\\\\")[2];
-								String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-								image.setPath(imageUrl);
-							}
-						}
-					}
 
 					ProductListDTOUser productDto = new ProductListDTOUser(product.getProductId(), product.getName(),
 							product.getCategory(), product.getImages(), 0, product.getProductStatus(),

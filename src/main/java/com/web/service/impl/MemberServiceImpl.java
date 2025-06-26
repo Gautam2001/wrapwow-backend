@@ -33,10 +33,8 @@ import com.web.entity.MemberEntity;
 import com.web.entity.MemberEntity.AccountStatus;
 import com.web.entity.MemberEntity.Role;
 import com.web.entity.ProductEntity;
-import com.web.entity.ProductImagesEntity;
 import com.web.entity.ProductPriceEntity;
 import com.web.service.MemberService;
-import com.web.utility.AppConfigProperties;
 import com.web.utility.DataConstants;
 import com.web.utility.jwt.JwtUtil;
 
@@ -45,9 +43,6 @@ import jakarta.validation.Valid;
 
 @Service
 public class MemberServiceImpl implements MemberService {
-
-	@Autowired
-	private AppConfigProperties appConfig;
 
 	@Autowired
 	private MemberDao memberDao;
@@ -99,23 +94,11 @@ public class MemberServiceImpl implements MemberService {
 	public Map<String, Object> landingPageData() {
 		Map<String, Object> response = new HashMap<>();
 		List<CategoriesEntity> categories = new ArrayList<>();
-		String baseurl = appConfig.getBaseURL();
 		try {
 			categories = categoriesDao.findAll();
 			if (categories.isEmpty()) {
 				return prepareResponse(response, "No Categories Present", false);
 			} else {
-				for (CategoriesEntity category : categories) {
-					String fullPath = category.getPath();
-					if (fullPath.startsWith("http")) {
-						continue;
-					}
-
-					String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-					String folder = fullPath.split("\\\\")[2];
-					String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-					category.setPath(imageUrl);
-				}
 				response.put("Categories", categories);
 			}
 
@@ -124,21 +107,6 @@ public class MemberServiceImpl implements MemberService {
 			if (BestSellingroducts.isEmpty()) {
 				return prepareResponse(response, "No products found.", false);
 			} else {
-				for (ProductEntity product : BestSellingroducts) {
-					if (product.getImages() != null) {
-						for (ProductImagesEntity image : product.getImages()) {
-							String fullPath = image.getPath();
-							if (fullPath.startsWith("http")) {
-								continue;
-							}
-
-							String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-							String folder = fullPath.split("\\\\")[2];
-							String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-							image.setPath(imageUrl);
-						}
-					}
-				}
 				List<ProductListDTOUser> dtoList = BestSellingroducts.stream().map(p -> {
 					Double minPrice = p.getPrices().stream().map(ProductPriceEntity::getFinalPrice)
 							.min(Double::compareTo).orElse(null);
@@ -153,21 +121,6 @@ public class MemberServiceImpl implements MemberService {
 			if (expensiveProducts.isEmpty()) {
 				return prepareResponse(response, "No products found.", false);
 			} else {
-				for (ProductEntity product2 : expensiveProducts) {
-					if (product2.getImages() != null) {
-						for (ProductImagesEntity image2 : product2.getImages()) {
-							String fullPath = image2.getPath();
-							if (fullPath.startsWith("http")) {
-								continue;
-							}
-
-							String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-							String folder = fullPath.split("\\\\")[2];
-							String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-							image2.setPath(imageUrl);
-						}
-					}
-				}
 				List<ProductListDTOUser> dtoList = expensiveProducts.stream().map(p -> {
 					Double minPrice = p.getPrices().stream().map(ProductPriceEntity::getFinalPrice)
 							.min(Double::compareTo).orElse(null);
@@ -419,23 +372,11 @@ public class MemberServiceImpl implements MemberService {
 	public Map<String, Object> getAllCategories() {
 		Map<String, Object> response = new HashMap<>();
 		List<CategoriesEntity> categories = new ArrayList<>();
-		String baseurl = appConfig.getBaseURL();
 		try {
 			categories = categoriesDao.findAll();
 			if (categories.isEmpty()) {
 				return prepareResponse(response, "No Categories Present", false);
 			} else {
-				for (CategoriesEntity category : categories) {
-					String fullPath = category.getPath();
-					if (fullPath.startsWith("http")) {
-						continue;
-					}
-
-					String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-					String folder = fullPath.split("\\\\")[2];
-					String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-					category.setPath(imageUrl);
-				}
 				response.put("Categories", categories);
 				return prepareResponse(response, "Categories fetched successfully.", true);
 			}
@@ -474,28 +415,12 @@ public class MemberServiceImpl implements MemberService {
 	@Override
 	public Map<String, Object> getProducts() {
 		Map<String, Object> response = new HashMap<>();
-		String baseurl = appConfig.getBaseURL();
 		try {
 			List<ProductEntity> products = productDao.findAll();
 
 			if (products.isEmpty()) {
 				return prepareResponse(response, "No Products Present", false);
 			} else {
-				for (ProductEntity product : products) {
-					if (product.getImages() != null) {
-						for (ProductImagesEntity image : product.getImages()) {
-							String fullPath = image.getPath();
-							if (fullPath.startsWith("http")) {
-								continue;
-							}
-
-							String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-							String folder = fullPath.split("\\\\")[2];
-							String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-							image.setPath(imageUrl);
-						}
-					}
-				}
 
 				response.put("Products", products);
 				return prepareResponse(response, "Products fetched successfully.", true);

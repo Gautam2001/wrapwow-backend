@@ -1,27 +1,23 @@
 package com.web.service.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
 import com.web.DTO.AddProductDTO;
 import com.web.DTO.GetUsersDTO;
 import com.web.DTO.ProductListDTOAdmin;
@@ -45,7 +41,6 @@ import com.web.entity.ProductEntity.ProductStatus;
 import com.web.entity.ProductImagesEntity;
 import com.web.entity.ProductPriceEntity;
 import com.web.service.AdminService;
-import com.web.utility.AppConfigProperties;
 import com.web.utility.DataConstants;
 
 import jakarta.transaction.Transactional;
@@ -57,7 +52,7 @@ import lombok.extern.java.Log;
 public class AdminServiceImpl implements AdminService {
 
 	@Autowired
-	private AppConfigProperties appConfig;
+	private Cloudinary cloudinary;
 
 	@Autowired
 	private MemberDao memberDao;
@@ -221,8 +216,7 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public Map<String, Object> addCategory(String emailId, String category, MultipartFile image) throws IOException {
 		Map<String, Object> response = new HashMap<>();
-		String uploadDIR = appConfig.getImageUploadDIR();
-		Path uploadedFilePath = null;
+		String uploadedPublicId = null;
 
 		if (userNotExist(emailId, response)) {
 			return response;
@@ -232,21 +226,16 @@ public class AdminServiceImpl implements AdminService {
 				throw new RuntimeException("Image must be less than 1 MB.");
 			}
 
-			File directory = new File(uploadDIR + "Categories");
-			if (!directory.exists()) {
-				directory.mkdirs();
-			}
+			// Upload to Cloudinary
+			@SuppressWarnings("unchecked")
+			Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(image.getBytes(),
+					Map.of("folder", "wrap-and-wow/Categories/", "public_id", UUID.randomUUID().toString()));
 
-			String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date());
-			String originalFileName = image.getOriginalFilename();
-			String fileName = timeStamp + "_" + originalFileName;
+			String imageUrl = (String) uploadResult.get("secure_url");
+			String publicId = (String) uploadResult.get("public_id");
+			uploadedPublicId = publicId;
 
-			Path filePath = Paths.get(uploadDIR + "Categories", fileName);
-
-			Files.write(filePath, image.getBytes());
-			uploadedFilePath = filePath;
-
-			CategoriesEntity categoriesEntity = new CategoriesEntity(category, filePath.toString());
+			CategoriesEntity categoriesEntity = new CategoriesEntity(category, imageUrl);
 
 			CategoriesEntity savedCategory = categoriesDao.save(categoriesEntity);
 			if (savedCategory == null || savedCategory.getCategoryId() == null) {
@@ -257,12 +246,11 @@ public class AdminServiceImpl implements AdminService {
 			return prepareResponse(response, "Category added Successfully", true);
 
 		} catch (Exception e) {
-			if (uploadedFilePath != null) {
+			if (uploadedPublicId != null) {
 				try {
-					Files.deleteIfExists(uploadedFilePath);
-				} catch (IOException ioEx) {
-					log.severe("Failed to delete orphaned image: " + uploadedFilePath.toString());
-					ioEx.printStackTrace();
+					cloudinary.uploader().destroy(uploadedPublicId, Map.of());
+				} catch (Exception destroyEx) {
+					log.warning("Failed to delete Cloudinary image: " + uploadedPublicId);
 				}
 			}
 			e.printStackTrace();
@@ -275,8 +263,7 @@ public class AdminServiceImpl implements AdminService {
 	public Map<String, Object> updateCategory(String emailId, Long categoryId, String categoryName, MultipartFile image)
 			throws IOException {
 		Map<String, Object> response = new HashMap<>();
-		String uploadDIR = appConfig.getImageUploadDIR();
-		Path uploadedFilePath = null;
+		String newPublicId = null;
 
 		if (userNotExist(emailId, response)) {
 			return response;
@@ -286,65 +273,80 @@ public class AdminServiceImpl implements AdminService {
 		if (optionalCategory.isEmpty()) {
 			return prepareResponse(response, "Category not found. Please try again.", false);
 		}
-		CategoriesEntity category = optionalCategory.get();
 
-		if (image == null) {
-			int updateResult = categoriesDao.updateCategoryById(categoryName, categoryId);
-			if (updateResult > 0) {
-				return prepareResponse(response, "Category updated Successfully", true);
-			} else {
-				return prepareResponse(response, "Category Name cannot be updated, please try again", false);
-			}
-		}
+		CategoriesEntity existingCategory = optionalCategory.get();
+		String oldPublicId = extractPublicId(existingCategory.getPath()); // We extract public_id from Cloudinary URL
 
 		try {
-			Path deletePath = Paths.get(category.getPath());
-			try {
-				Files.deleteIfExists(deletePath);
-			} catch (IOException ioEx) {
-				log.severe("Failed to delete image: " + deletePath.toString());
-				ioEx.printStackTrace();
-				throw new RuntimeException("Failed to delete image: " + deletePath.toString());
+			// If no new image, only update name
+			if (image == null) {
+				int updateResult = categoriesDao.updateCategoryById(categoryName, categoryId);
+				if (updateResult > 0) {
+					return prepareResponse(response, "Category updated successfully.", true);
+				} else {
+					return prepareResponse(response, "Failed to update category name.", false);
+				}
 			}
 
+			// Validate image size
 			if (image.getSize() > 1 * 1024 * 1024) {
 				throw new RuntimeException("Image must be less than 1 MB.");
 			}
 
-			File directory = new File(uploadDIR + "Categories");
-			if (!directory.exists()) {
-				directory.mkdirs();
-			}
+			// Upload new image to Cloudinary
+			newPublicId = UUID.randomUUID().toString();
+			@SuppressWarnings("unchecked")
+			Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(image.getBytes(),
+					Map.of("folder", "wrap-and-wow/Categories", "public_id", newPublicId));
 
-			String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date());
-			String originalFileName = image.getOriginalFilename();
-			String fileName = timeStamp + "_" + originalFileName;
+			String newImageUrl = (String) uploadResult.get("secure_url");
 
-			Path filePath = Paths.get(uploadDIR + "Categories", fileName);
+			// Attempt to update DB
+			int updateResult = categoriesDao.updateCategoryImageById(categoryId, categoryName, newImageUrl);
+			if (updateResult > 0) {
+				// Delete old image from Cloudinary if DB update was successful
+				if (oldPublicId != null) {
+					try {
+						cloudinary.uploader().destroy("wrap-and-wow/Categories/" + oldPublicId, Map.of());
+					} catch (Exception destroyEx) {
+						log.warning("Failed to delete old Cloudinary image: " + oldPublicId);
+					}
+				}
 
-			Files.write(filePath, image.getBytes());
-			uploadedFilePath = filePath;
-
-			CategoriesEntity categoriesEntity = new CategoriesEntity(categoryId, categoryName, filePath.toString());
-
-			int updatedCategory = categoriesDao.updateCategoryImageById(categoriesEntity.getCategoryId(),
-					categoriesEntity.getCategory(), categoriesEntity.getPath());
-			if (updatedCategory > 0) {
-				return prepareResponse(response, "Category updated Successfully", true);
+				return prepareResponse(response, "Category updated successfully.", true);
 			} else {
-				return prepareResponse(response, "Category Name cannot be updated, please try again", false);
+				// If DB update failed, delete new image to prevent orphaned image
+				cloudinary.uploader().destroy("wrap-and-wow/Categories/" + newPublicId, Map.of());
+				return prepareResponse(response, "Failed to update category.", false);
 			}
+
 		} catch (Exception e) {
-			if (uploadedFilePath != null) {
+			// Clean up new image on failure
+			if (newPublicId != null) {
 				try {
-					Files.deleteIfExists(uploadedFilePath);
-				} catch (IOException ioEx) {
-					log.severe("Failed to delete orphaned image: " + uploadedFilePath.toString());
-					ioEx.printStackTrace();
+					cloudinary.uploader().destroy("wrap-and-wow/Categories/" + newPublicId, Map.of());
+				} catch (Exception destroyEx) {
+					log.warning("Failed to delete new Cloudinary image on error: " + newPublicId);
 				}
 			}
+
 			e.printStackTrace();
-			throw new RuntimeException("Failed to add Category. PLease try again.");
+			throw new RuntimeException("Failed to update category. Please try again.");
+		}
+	}
+
+	private String extractPublicId(String imageUrl) {
+		if (imageUrl == null || !imageUrl.contains("/wrap-and-wow/Categories/"))
+			return null;
+
+		try {
+			String[] parts = imageUrl.split("/wrap-and-wow/Categories/");
+			if (parts.length < 2)
+				return null;
+			String filename = parts[1].split("\\.")[0];
+			return filename;
+		} catch (Exception e) {
+			return null;
 		}
 	}
 
@@ -454,6 +456,7 @@ public class AdminServiceImpl implements AdminService {
 	@Transactional
 	public Map<String, Object> uploadImage(Long productId, List<MultipartFile> images) throws IOException {
 		Map<String, Object> response = new HashMap<>();
+
 		if (productId == null || productId == 0) {
 			throw new RuntimeException("ProductId not specified.");
 		}
@@ -463,66 +466,68 @@ public class AdminServiceImpl implements AdminService {
 
 		Optional<ProductImagesEntity> optionalImages = imageDao.findByProductId(productId);
 		if (optionalImages.isPresent()) {
-			productDao.deleteById(productId);
-			throw new RuntimeException("Images for the product Already exists.");
+			deleteProductCascade(productId); // delete child data before product
+			throw new RuntimeException("Images for the product already exist.");
 		}
 
 		if (images == null || images.isEmpty()) {
-			productDao.deleteById(productId);
+			deleteProductCascade(productId);
 			throw new RuntimeException("No images received.");
 		}
 
 		if (images.size() > 5) {
-			productDao.deleteById(productId);
+			deleteProductCascade(productId);
 			throw new RuntimeException("A maximum of 5 images can be uploaded.");
 		}
 
-		List<Path> uploadedFilePaths = new ArrayList<>();
-		String uploadDIR = appConfig.getImageUploadDIR();
+		List<String> uploadedPublicIds = new ArrayList<>();
 
 		try {
-			File directory = new File(uploadDIR + productId);
-			if (!directory.exists()) {
-				directory.mkdirs();
-			}
-
 			for (MultipartFile image : images) {
 				if (image.getSize() > 1 * 1024 * 1024) {
 					throw new RuntimeException("Each image must be less than 1 MB.");
 				}
 
-				String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date());
-				String originalFilename = image.getOriginalFilename();
-				String fileName = timeStamp + "_" + originalFilename;
+				// Upload to Cloudinary
+				@SuppressWarnings("unchecked")
+				Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(image.getBytes(),
+						Map.of("folder", "wrap-and-wow/products/" + productId, "public_id",
+								UUID.randomUUID().toString()));
 
-				Path filePath = Paths.get(uploadDIR + productId, fileName);
+				String imageUrl = (String) uploadResult.get("secure_url");
+				String publicId = (String) uploadResult.get("public_id");
+				uploadedPublicIds.add(publicId);
 
-				Files.write(filePath, image.getBytes());
-				uploadedFilePaths.add(filePath);
-
-				ProductImagesEntity imageEntity = new ProductImagesEntity(filePath.toString(), product);
+				// Save image record
+				ProductImagesEntity imageEntity = new ProductImagesEntity(imageUrl, product);
 				imageDao.save(imageEntity);
 			}
 
 			return prepareResponse(response, "Images uploaded successfully", true);
 
 		} catch (Exception e) {
-			for (Path path : uploadedFilePaths) {
+			for (String publicId : uploadedPublicIds) {
 				try {
-					Files.deleteIfExists(path);
-				} catch (IOException ioEx) {
-					log.severe("Failed to delete orphaned image: " + path.toString());
-					ioEx.printStackTrace();
+					cloudinary.uploader().destroy(publicId, Map.of());
+				} catch (Exception destroyEx) {
+					log.warning("Failed to delete Cloudinary image: " + publicId);
 				}
 			}
-			try {
-				productDao.deleteById(productId);
-			} catch (Exception deleteEx) {
-				log.severe("Failed to delete product after image upload failure: " + deleteEx.getMessage());
-			}
-			log.severe("Failed to upload images: " + e.getMessage());
-			e.printStackTrace();
+
+			deleteProductCascade(productId);
+
+			log.severe("Image upload failed: " + e.getMessage());
 			throw new RuntimeException("Failed to upload images. Please try again.");
+		}
+	}
+
+	private void deleteProductCascade(Long productId) {
+		try {
+			imageDao.deleteByProductId(productId);
+			priceDao.deleteByProductId(productId);
+			productDao.deleteById(productId);
+		} catch (Exception e) {
+			log.severe("Cascade delete failed: " + e.getMessage());
 		}
 	}
 
@@ -572,26 +577,13 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public Map<String, Object> getProductById(@Valid long productId) {
 		Map<String, Object> response = new HashMap<>();
-		String baseurl = appConfig.getBaseURL();
 		try {
 			Optional<ProductEntity> productOpt = productDao.findById(productId);
 			if (productOpt.isEmpty()) {
 				return prepareResponse(response, "No product for the product id found.", false);
 			} else {
 				ProductEntity product = productOpt.get();
-				if (product.getImages() != null) {
-					for (ProductImagesEntity image : product.getImages()) {
-						String fullPath = image.getPath();
-						if (fullPath.startsWith("http")) {
-							continue;
-						}
 
-						String fileName = fullPath.substring(fullPath.lastIndexOf("\\") + 1);
-						String folder = fullPath.split("\\\\")[2];
-						String imageUrl = baseurl + "images/" + folder + "/" + fileName;
-						image.setPath(imageUrl);
-					}
-				}
 				response.put("Product", product);
 				return prepareResponse(response, "Product fetched successfully.", true);
 			}
@@ -693,6 +685,7 @@ public class AdminServiceImpl implements AdminService {
 	public Map<String, Object> updateProductImage(Long productId, List<Long> imageIds, List<MultipartFile> images)
 			throws IOException {
 		Map<String, Object> response = new HashMap<>();
+
 		if (productId == null || productId == 0) {
 			throw new RuntimeException("ProductId not specified.");
 		}
@@ -710,68 +703,70 @@ public class AdminServiceImpl implements AdminService {
 			throw new RuntimeException("Total number of images after update cannot exceed 5.");
 		}
 
-		List<Path> uploadedFilePaths = new ArrayList<>();
-		String uploadDIR = appConfig.getImageUploadDIR();
+		List<String> uploadedPublicIds = new ArrayList<>();
 
 		try {
-			File directory = new File(uploadDIR + productId);
-			if (!directory.exists()) {
-				directory.mkdirs();
+			List<ProductImagesEntity> newImageEntities = new ArrayList<>();
+
+			// Upload new images to Cloudinary
+			for (MultipartFile image : images) {
+				if (image.getSize() > 1 * 1024 * 1024) {
+					throw new RuntimeException("Each image must be less than 1 MB.");
+				}
+
+				@SuppressWarnings("unchecked")
+				Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(image.getBytes(),
+						Map.of("folder", "wrap-and-wow/products/" + productId, "public_id",
+								UUID.randomUUID().toString()));
+
+				String imageUrl = (String) uploadResult.get("secure_url");
+				String publicId = (String) uploadResult.get("public_id");
+
+				uploadedPublicIds.add(publicId);
+
+				ProductImagesEntity imageEntity = new ProductImagesEntity(imageUrl, product);
+				newImageEntities.add(imageEntity);
 			}
 
-			List<ProductImagesEntity> imagesEntities = new ArrayList<>();
-			if (images.size() > 0) {
-				for (MultipartFile image : images) {
-					if (image.getSize() > 1 * 1024 * 1024) {
-						throw new RuntimeException("Each image must be less than 1 MB.");
-					}
+			imageDao.saveAll(newImageEntities);
 
-					String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date());
-					String originalFilename = image.getOriginalFilename();
-					String fileName = timeStamp + "_" + originalFilename;
+			// Delete selected old images
+			for (Long imageId : imageIds) {
+				Optional<ProductImagesEntity> optionalImage = imageDao.findById(imageId);
+				if (optionalImage.isEmpty()) {
+					return prepareResponse(response, "Image could not be traced for image Id: " + imageId, false);
+				}
 
-					Path filePath = Paths.get(uploadDIR + productId, fileName);
+				ProductImagesEntity oldImage = optionalImage.get();
+				imageDao.delete(oldImage);
 
-					Files.write(filePath, image.getBytes());
-					uploadedFilePaths.add(filePath);
+				// Extract public_id from URL
+				String publicId = extractPublicId(oldImage.getPath());
 
-					ProductImagesEntity imageEntity = new ProductImagesEntity(filePath.toString(), product);
-					imagesEntities.add(imageEntity);
+				String fullCloudinaryId = "wrap-and-wow/products/" + productId + "/" + publicId;
+
+				try {
+					cloudinary.uploader().destroy(fullCloudinaryId, Map.of());
+				} catch (Exception ex) {
+					log.warning("Failed to delete Cloudinary image: " + fullCloudinaryId);
 				}
 			}
-			imageDao.saveAll(imagesEntities);
-			if (!imageIds.isEmpty()) {
-				for (Long imageId : imageIds) {
-					Optional<ProductImagesEntity> optionalImage = imageDao.findById(imageId);
-					if (optionalImage.isEmpty()) {
-						return prepareResponse(response, "Image could not be traced for image Id: " + imageId, true);
-					}
-					ProductImagesEntity deleteImage = optionalImage.get();
-					Path deletePath = Paths.get(deleteImage.getPath());
-					try {
-						Files.deleteIfExists(deletePath);
-					} catch (IOException ioEx) {
-						log.severe("Failed to delete image: " + deletePath.toString());
-						ioEx.printStackTrace();
-						throw new RuntimeException("Failed to delete image: " + deletePath.toString());
-					}
-					imageDao.delete(deleteImage);
-				}
-			}
+
 			return prepareResponse(response, "Images updated successfully", true);
 
 		} catch (Exception e) {
-			for (Path path : uploadedFilePaths) {
+			// Rollback Cloudinary uploads
+			for (String publicId : uploadedPublicIds) {
 				try {
-					Files.deleteIfExists(path);
-				} catch (IOException ioEx) {
-					log.severe("Failed to delete orphaned image: " + path.toString());
-					ioEx.printStackTrace();
+					cloudinary.uploader().destroy(publicId, Map.of());
+				} catch (Exception ex) {
+					log.warning("Failed to rollback Cloudinary image: " + publicId);
 				}
 			}
-			log.severe("Failed to upload images: " + e.getMessage());
+
+			log.severe("Failed to update product images: " + e.getMessage());
 			e.printStackTrace();
-			throw new RuntimeException("Failed to upload images. Please try again.");
+			throw new RuntimeException("Failed to update product images. Please try again.");
 		}
 	}
 
