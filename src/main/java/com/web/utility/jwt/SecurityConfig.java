@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -40,6 +41,7 @@ public class SecurityConfig {
 
 		return http.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
+						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/member/landingPageData", "/member/signup", "/member/login", "/member/sendOtp",
 								"/member/validateOtp", "/member/forgotPassword", "/member/contactUs")
 						.permitAll().requestMatchers("/admin/**")
