@@ -39,20 +39,25 @@ public class SecurityConfig {
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtUtil, customUserDetailsService);
 
-		return http.csrf(csrf -> csrf.disable())
+		return http
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-						.requestMatchers("/member/landingPageData", "/member/signup", "/member/login", "/member/sendOtp",
-								"/member/validateOtp", "/member/forgotPassword", "/member/contactUs")
-						.permitAll().requestMatchers("/admin/**")
-						.hasRole("ADMIN").requestMatchers("/user/**").hasRole("USER").requestMatchers("/member")
-						.hasAnyRole("ADMIN", "USER").anyRequest().authenticated())
-				.exceptionHandling(ex -> ex.authenticationEntryPoint(authenticationEntryPoint)
-						.accessDeniedHandler(accessDeniedHandler))
-				.cors(Customizer.withDefaults())
+					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+					.requestMatchers("/member/landingPageData", "/member/signup", "/member/login", "/member/sendOtp",
+						"/member/validateOtp", "/member/forgotPassword", "/member/contactUs").permitAll()
+					.requestMatchers("/admin/**").hasRole("ADMIN")
+					.requestMatchers("/user/**").hasRole("USER")
+					.requestMatchers("/member").hasAnyRole("ADMIN", "USER")
+					.anyRequest().authenticated())
+				.exceptionHandling(ex -> ex
+					.authenticationEntryPoint(authenticationEntryPoint)
+					.accessDeniedHandler(accessDeniedHandler))
 				.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
-				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class).build();
+				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+				.build();
 	}
+
 
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
