@@ -54,15 +54,23 @@ public class SecurityConfig {
 
 	@Bean
 	CorsConfigurationSource corsConfigurationSource() {
-		CorsConfiguration config = new CorsConfiguration();
-		config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:4173", "https://wrap-and-wow.vercel.app/", "https://wrap-and-wow-gautam-singhals-projects.vercel.app/"));
-		config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-		config.setAllowCredentials(true);
+	    CorsConfiguration config = new CorsConfiguration();
 
-		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-		source.registerCorsConfiguration("/**", config);
-		return source;
+	    config.setAllowedOrigins(List.of(
+	        "http://localhost:5173",
+	        "http://localhost:4173",
+	        "https://wrap-and-wow.vercel.app",
+	        "https://wrap-and-wow-gautam-singhals-projects.vercel.app"
+	    ));
+
+	    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+	    config.addAllowedHeader("*");
+	    config.setAllowCredentials(true);
+
+	    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+	    source.registerCorsConfiguration("/**", config);
+	    return source;
 	}
 
 	@Bean
