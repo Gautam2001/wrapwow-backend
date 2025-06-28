@@ -28,6 +28,18 @@ public class MemberController {
 	@Autowired
 	MemberService memberService;
 
+	@GetMapping("/ping")
+	public ResponseEntity<Map<String, Object>> ping() {
+		Map<String, Object> response = new HashMap<>();
+
+		response.put("message", DataConstants.SUCCESS_Message);
+		response.put("status", DataConstants.SUCCESS_STATUS);
+
+		response.put("resultString", "pong");
+
+		return ResponseEntity.ok(response);
+	}
+	
 	@GetMapping("/landingPageData")
 	public ResponseEntity<Map<String, Object>> landingPageData() {
 		Map<String, Object> response = new HashMap<>();

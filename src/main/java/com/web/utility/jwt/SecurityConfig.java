@@ -44,7 +44,7 @@ public class SecurityConfig {
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
 					.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-					.requestMatchers("/member/landingPageData", "/member/signup", "/member/login", "/member/sendOtp",
+					.requestMatchers("/member/ping", "/member/landingPageData", "/member/signup", "/member/login", "/member/sendOtp",
 						"/member/validateOtp", "/member/forgotPassword", "/member/contactUs").permitAll()
 					.requestMatchers("/admin/**").hasRole("ADMIN")
 					.requestMatchers("/user/**").hasRole("USER")
