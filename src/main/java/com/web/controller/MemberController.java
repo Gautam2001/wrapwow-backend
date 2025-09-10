@@ -9,14 +9,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.web.DTO.ContactUsDTO;
-import com.web.DTO.MemberLoginDTO;
-import com.web.DTO.ResetPasswordDTO;
-import com.web.DTO.SignupDTO;
+import com.web.DTO.UsernameDTO;
 import com.web.service.MemberService;
+import com.web.utility.CommonUtils;
 import com.web.utility.DataConstants;
 
 import jakarta.validation.Valid;
@@ -30,6 +28,7 @@ public class MemberController {
 
 	@GetMapping("/ping")
 	public ResponseEntity<Map<String, Object>> ping() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 
 		response.put("message", DataConstants.SUCCESS_Message);
@@ -39,9 +38,10 @@ public class MemberController {
 
 		return ResponseEntity.ok(response);
 	}
-	
+
 	@GetMapping("/landingPageData")
 	public ResponseEntity<Map<String, Object>> landingPageData() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 
 		response.put("message", DataConstants.SUCCESS_Message);
@@ -52,80 +52,32 @@ public class MemberController {
 		return ResponseEntity.ok(response);
 	}
 
-	@PostMapping("/signup")
-	public ResponseEntity<Map<String, Object>> signup(@RequestBody @Valid SignupDTO signupDTO) {
+	@GetMapping("/exists")
+	public ResponseEntity<Map<String, Object>> userExistsCheck(@RequestBody @Valid UsernameDTO usernameDTO) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
 
-		response.put("resultString", memberService.signup(signupDTO));
-		return ResponseEntity.ok(response);
-	}
-
-	@PostMapping("/login")
-	public ResponseEntity<Map<String, Object>> Login(@RequestBody @Valid MemberLoginDTO loginDTO) {
-		Map<String, Object> response = new HashMap<>();
-
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.memberLogin(loginDTO));
+		response.put("resultString", memberService.userExistsCheck(usernameDTO));
 
 		return ResponseEntity.ok(response);
 	}
 
-	@PostMapping("/sendOtp")
-	public ResponseEntity<Map<String, Object>> sendOtp(@RequestParam String email) {
-		Map<String, Object> response = new HashMap<>();
-		if (email == null || email.isBlank() || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-			response.put("message", DataConstants.FAIL_Message);
-			response.put("status", DataConstants.FAIL_STATUS);
-			return ResponseEntity.badRequest().body(response);
-		}
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.sendOtp(email));
-
-		return ResponseEntity.ok(response);
-	}
-
-	@PostMapping("/validateOtp")
-	public ResponseEntity<Map<String, Object>> validateOtp(@RequestBody @Valid MemberLoginDTO memberLoginDTO) {
+	@PostMapping("/join")
+	public ResponseEntity<Map<String, Object>> joinApp(@RequestBody @Valid UsernameDTO usernameDTO) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
 
-		response.put("resultString", memberService.validateOtp(memberLoginDTO));
-
-		return ResponseEntity.ok(response);
-	}
-
-	@PostMapping("/forgotPassword")
-	public ResponseEntity<Map<String, Object>> ForgotPassword(@RequestBody @Valid MemberLoginDTO forgotPasswordDTO) {
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.forgotPassword(forgotPasswordDTO));
-
-		return ResponseEntity.ok(response);
-	}
-
-	@PostMapping("/resetPassword")
-	public ResponseEntity<Map<String, Object>> userResetPassword(
-			@RequestBody @Valid ResetPasswordDTO resetPasswordDTO) {
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.resetPassword(resetPasswordDTO));
-
+		response.put("resultString", memberService.joinApp(usernameDTO));
 		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping("/contactUs")
 	public ResponseEntity<Map<String, Object>> contactUs(@RequestBody @Valid ContactUsDTO contactUsDTO) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -137,6 +89,7 @@ public class MemberController {
 
 	@GetMapping("/getCategories")
 	public ResponseEntity<Map<String, Object>> getAllCategories() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -148,6 +101,7 @@ public class MemberController {
 
 	@GetMapping("/getCategoryNames")
 	public ResponseEntity<Map<String, Object>> getCategoryNames() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -159,6 +113,7 @@ public class MemberController {
 
 	@GetMapping("/getProducts")
 	public ResponseEntity<Map<String, Object>> getProducts() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);

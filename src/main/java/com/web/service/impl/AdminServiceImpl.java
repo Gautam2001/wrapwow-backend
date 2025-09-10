@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,7 +40,7 @@ import com.web.entity.ProductEntity.ProductStatus;
 import com.web.entity.ProductImagesEntity;
 import com.web.entity.ProductPriceEntity;
 import com.web.service.AdminService;
-import com.web.utility.DataConstants;
+import com.web.utility.CommonUtils;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -75,31 +74,23 @@ public class AdminServiceImpl implements AdminService {
 	@Autowired
 	private OrderItemDao orderItemDao;
 
-	@Autowired
-	BCryptPasswordEncoder passwordEncoder;
-
-	private Map<String, Object> prepareResponse(Map<String, Object> response, String message, boolean isSuccess) {
-		response.put("result", message);
-		response.put("resultStatus", isSuccess ? DataConstants.SUCCESS_STATUS : DataConstants.FAIL_STATUS);
-		return response;
-	}
-
 	private boolean userNotExist(String email, Map<String, Object> response) {
+		CommonUtils.logMethodEntry(this);
 		try {
 			Optional<MemberEntity> userOptional = memberDao.getUserByEmail(email);
 
 			if (userOptional.isEmpty()) {
-				prepareResponse(response, "Member does not exist.", false);
+				CommonUtils.prepareResponse(response, "Member does not exist.", false);
 				return true;
 			}
 
 			String role = userOptional.get().getRole().toString();
 
 			if ("USER".equals(role)) {
-				prepareResponse(response, "Login with Admin Credentials to access further.", false);
+				CommonUtils.prepareResponse(response, "Login with Admin Credentials to access further.", false);
 				return true;
 			} else {
-				prepareResponse(response, "Admin already exists, try logging in.", true);
+				CommonUtils.prepareResponse(response, "Admin already exists, try logging in.", true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -110,14 +101,15 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> getAllUsers() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		List<MemberEntity> users = new ArrayList<>();
 		try {
 			users = memberDao.findAll();
 			if (users.isEmpty()) {
-				return prepareResponse(response, "No Members Present", false);
+				return CommonUtils.prepareResponse(response, "No Members Present", false);
 			} else {
-				return prepareResponse(response, users.toString(), true);
+				return CommonUtils.prepareResponse(response, users.toString(), true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -127,15 +119,16 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> getAdmins() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		Role role = Role.ADMIN;
 		try {
 			List<GetUsersDTO> admins = memberDao.findAllByRole(role);
 			if (admins.isEmpty()) {
-				return prepareResponse(response, "No Admins Present", false);
+				return CommonUtils.prepareResponse(response, "No Admins Present", false);
 			} else {
 				response.put("Admins", admins);
-				return prepareResponse(response, "Admins fetched successfully.", true);
+				return CommonUtils.prepareResponse(response, "Admins fetched successfully.", true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -145,9 +138,12 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> updateAdminsStatus(@Valid UpdateStatusDTO updateStatusDTO) {
+		CommonUtils.logMethodEntry(this);
+		String email = CommonUtils.normalizeUsername(updateStatusDTO.getEmail());
+		CommonUtils.ValidateUserWithToken(email);
 		Map<String, Object> response = new HashMap<>();
 
-		if (userNotExist(updateStatusDTO.getEmail(), response)) {
+		if (userNotExist(email, response)) {
 			return response;
 		}
 
@@ -159,9 +155,9 @@ public class AdminServiceImpl implements AdminService {
 			}
 			int updateResult = memberDao.updateStatusForUserIds(ids, AccountStatus.ACTIVE, AccountStatus.INACTIVE);
 			if (updateResult > 0) {
-				return prepareResponse(response, "Status updated Successfully", true);
+				return CommonUtils.prepareResponse(response, "Status updated Successfully", true);
 			} else {
-				return prepareResponse(response, "Status cannot be updated, please try again", false);
+				return CommonUtils.prepareResponse(response, "Status cannot be updated, please try again", false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -171,15 +167,16 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> getUsers() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		Role role = Role.USER;
 		try {
 			List<GetUsersDTO> users = memberDao.findAllByRole(role);
 			if (users.isEmpty()) {
-				return prepareResponse(response, "No Users Present", false);
+				return CommonUtils.prepareResponse(response, "No Users Present", false);
 			} else {
 				response.put("Users", users);
-				return prepareResponse(response, "Users fetched successfully.", true);
+				return CommonUtils.prepareResponse(response, "Users fetched successfully.", true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -189,9 +186,12 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> updateUsersStatus(@Valid UpdateStatusDTO updateStatusDTO) {
+		CommonUtils.logMethodEntry(this);
+		String email = CommonUtils.normalizeUsername(updateStatusDTO.getEmail());
+		CommonUtils.ValidateUserWithToken(email);
 		Map<String, Object> response = new HashMap<>();
 
-		if (userNotExist(updateStatusDTO.getEmail(), response)) {
+		if (userNotExist(email, response)) {
 			return response;
 		}
 
@@ -203,9 +203,9 @@ public class AdminServiceImpl implements AdminService {
 			}
 			int updateResult = memberDao.updateStatusForUserIds(ids, AccountStatus.ACTIVE, AccountStatus.INACTIVE);
 			if (updateResult > 0) {
-				return prepareResponse(response, "Status updated Successfully", true);
+				return CommonUtils.prepareResponse(response, "Status updated Successfully", true);
 			} else {
-				return prepareResponse(response, "Status cannot be updated, please try again", false);
+				return CommonUtils.prepareResponse(response, "Status cannot be updated, please try again", false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -215,10 +215,13 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> addCategory(String emailId, String category, MultipartFile image) throws IOException {
+		CommonUtils.logMethodEntry(this);
+		String email = CommonUtils.normalizeUsername(emailId);
+		CommonUtils.ValidateUserWithToken(email);
 		Map<String, Object> response = new HashMap<>();
 		String uploadedPublicId = null;
 
-		if (userNotExist(emailId, response)) {
+		if (userNotExist(email, response)) {
 			return response;
 		}
 		try {
@@ -239,11 +242,11 @@ public class AdminServiceImpl implements AdminService {
 
 			CategoriesEntity savedCategory = categoriesDao.save(categoriesEntity);
 			if (savedCategory == null || savedCategory.getCategoryId() == null) {
-				return prepareResponse(response, "Failed to save the product. Please try again.", false);
+				return CommonUtils.prepareResponse(response, "Failed to save the product. Please try again.", false);
 			}
 			response.put("Category", savedCategory);
 
-			return prepareResponse(response, "Category added Successfully", true);
+			return CommonUtils.prepareResponse(response, "Category added Successfully", true);
 
 		} catch (Exception e) {
 			if (uploadedPublicId != null) {
@@ -262,16 +265,19 @@ public class AdminServiceImpl implements AdminService {
 	@Transactional
 	public Map<String, Object> updateCategory(String emailId, Long categoryId, String categoryName, MultipartFile image)
 			throws IOException {
+		CommonUtils.logMethodEntry(this);
+		String email = CommonUtils.normalizeUsername(emailId);
+		CommonUtils.ValidateUserWithToken(email);
 		Map<String, Object> response = new HashMap<>();
 		String newPublicId = null;
 
-		if (userNotExist(emailId, response)) {
+		if (userNotExist(email, response)) {
 			return response;
 		}
 
 		Optional<CategoriesEntity> optionalCategory = categoriesDao.findById(categoryId);
 		if (optionalCategory.isEmpty()) {
-			return prepareResponse(response, "Category not found. Please try again.", false);
+			return CommonUtils.prepareResponse(response, "Category not found. Please try again.", false);
 		}
 
 		CategoriesEntity existingCategory = optionalCategory.get();
@@ -282,9 +288,9 @@ public class AdminServiceImpl implements AdminService {
 			if (image == null) {
 				int updateResult = categoriesDao.updateCategoryById(categoryName, categoryId);
 				if (updateResult > 0) {
-					return prepareResponse(response, "Category updated successfully.", true);
+					return CommonUtils.prepareResponse(response, "Category updated successfully.", true);
 				} else {
-					return prepareResponse(response, "Failed to update category name.", false);
+					return CommonUtils.prepareResponse(response, "Failed to update category name.", false);
 				}
 			}
 
@@ -313,11 +319,11 @@ public class AdminServiceImpl implements AdminService {
 					}
 				}
 
-				return prepareResponse(response, "Category updated successfully.", true);
+				return CommonUtils.prepareResponse(response, "Category updated successfully.", true);
 			} else {
 				// If DB update failed, delete new image to prevent orphaned image
 				cloudinary.uploader().destroy("wrap-and-wow/Categories/" + newPublicId, Map.of());
-				return prepareResponse(response, "Failed to update category.", false);
+				return CommonUtils.prepareResponse(response, "Failed to update category.", false);
 			}
 
 		} catch (Exception e) {
@@ -336,6 +342,7 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	private String extractPublicId(String imageUrl) {
+		CommonUtils.logMethodEntry(this);
 		if (imageUrl == null || !imageUrl.contains("/wrap-and-wow/Categories/"))
 			return null;
 
@@ -352,9 +359,12 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> updateCategoryStatus(@Valid UpdateCategoryStatusDTO updateCategoryStatusDTO) {
+		CommonUtils.logMethodEntry(this);
+		String email = CommonUtils.normalizeUsername(updateCategoryStatusDTO.getEmail());
+		CommonUtils.ValidateUserWithToken(email);
 		Map<String, Object> response = new HashMap<>();
 
-		if (userNotExist(updateCategoryStatusDTO.getEmail(), response)) {
+		if (userNotExist(email, response)) {
 			return response;
 		}
 
@@ -366,9 +376,9 @@ public class AdminServiceImpl implements AdminService {
 			}
 			int updateResult = categoriesDao.updateStatusForUserId(id, CategoryStatus.ACTIVE, CategoryStatus.INACTIVE);
 			if (updateResult > 0) {
-				return prepareResponse(response, "Status updated Successfully", true);
+				return CommonUtils.prepareResponse(response, "Status updated Successfully", true);
 			} else {
-				return prepareResponse(response, "Status cannot be updated, please try again", false);
+				return CommonUtils.prepareResponse(response, "Status cannot be updated, please try again", false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -379,9 +389,12 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public Map<String, Object> addProduct(@Valid AddProductDTO addProductDTO) {
+		CommonUtils.logMethodEntry(this);
+		String email = CommonUtils.normalizeUsername(addProductDTO.getEmail());
+		CommonUtils.ValidateUserWithToken(email);
 		Map<String, Object> response = new HashMap<>();
 
-		if (userNotExist(addProductDTO.getEmail(), response)) {
+		if (userNotExist(email, response)) {
 			return response;
 		}
 
@@ -390,13 +403,13 @@ public class AdminServiceImpl implements AdminService {
 		List<Double> finalPrices = addProductDTO.getFinalPrice();
 
 		if (!(prices.size() == discounts.size() && discounts.size() == finalPrices.size())) {
-			return prepareResponse(response, "Fields mismatch in price, discount and final price, please try again.",
-					false);
+			return CommonUtils.prepareResponse(response,
+					"Fields mismatch in price, discount and final price, please try again.", false);
 		}
 
 		if (prices.size() > 5 && discounts.size() > 5 && finalPrices.size() > 5) {
-			return prepareResponse(response, "A maximum of 5 different prices can be specified, please try again.",
-					false);
+			return CommonUtils.prepareResponse(response,
+					"A maximum of 5 different prices can be specified, please try again.", false);
 		}
 
 		for (int i = 0; i < prices.size(); i++) {
@@ -407,13 +420,13 @@ public class AdminServiceImpl implements AdminService {
 					.doubleValue();
 
 			if (discount < 0 || discount > 100) {
-				return prepareResponse(response, "Invalid Discount value at index " + i + ", product cannot be added.",
-						false);
+				return CommonUtils.prepareResponse(response,
+						"Invalid Discount value at index " + i + ", product cannot be added.", false);
 			}
 
 			if (roundedFinalPrice != finalPrices.get(i)) {
-				return prepareResponse(response, "Final price mismatch at index " + i + ", product cannot be added.",
-						false);
+				return CommonUtils.prepareResponse(response,
+						"Final price mismatch at index " + i + ", product cannot be added.", false);
 			}
 		}
 
@@ -422,11 +435,11 @@ public class AdminServiceImpl implements AdminService {
 					addProductDTO.getQuantity(), addProductDTO.getCategory(),
 					addProductDTO.getProductStatus().equalsIgnoreCase("ACTIVE") ? ProductStatus.ACTIVE
 							: ProductStatus.INACTIVE,
-					addProductDTO.getEmail());
+					email);
 
 			ProductEntity savedProduct = productDao.save(product);
 			if (savedProduct == null || savedProduct.getProductId() == null) {
-				return prepareResponse(response, "Failed to save the product. Please try again.", false);
+				return CommonUtils.prepareResponse(response, "Failed to save the product. Please try again.", false);
 			}
 
 			List<ProductPriceEntity> priceEntities = new ArrayList<>();
@@ -442,7 +455,7 @@ public class AdminServiceImpl implements AdminService {
 			priceDao.saveAll(priceEntities);
 
 			response.put("productId", savedProduct.getProductId());
-			return prepareResponse(response, "Product added successfully.", true);
+			return CommonUtils.prepareResponse(response, "Product added successfully.", true);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -455,6 +468,7 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public Map<String, Object> uploadImage(Long productId, List<MultipartFile> images) throws IOException {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 
 		if (productId == null || productId == 0) {
@@ -503,7 +517,7 @@ public class AdminServiceImpl implements AdminService {
 				imageDao.save(imageEntity);
 			}
 
-			return prepareResponse(response, "Images uploaded successfully", true);
+			return CommonUtils.prepareResponse(response, "Images uploaded successfully", true);
 
 		} catch (Exception e) {
 			for (String publicId : uploadedPublicIds) {
@@ -522,6 +536,7 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	private void deleteProductCascade(Long productId) {
+		CommonUtils.logMethodEntry(this);
 		try {
 			imageDao.deleteByProductId(productId);
 			priceDao.deleteByProductId(productId);
@@ -533,9 +548,12 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> updateProductsStatus(@Valid UpdateStatusDTO updateStatusDTO) {
+		CommonUtils.logMethodEntry(this);
+		String email = CommonUtils.normalizeUsername(updateStatusDTO.getEmail());
+		CommonUtils.ValidateUserWithToken(email);
 		Map<String, Object> response = new HashMap<>();
 
-		if (userNotExist(updateStatusDTO.getEmail(), response)) {
+		if (userNotExist(email, response)) {
 			return response;
 		}
 
@@ -547,9 +565,9 @@ public class AdminServiceImpl implements AdminService {
 			}
 			int updateResult = productDao.updateStatusForUserIds(ids, ProductStatus.ACTIVE, ProductStatus.INACTIVE);
 			if (updateResult > 0) {
-				return prepareResponse(response, "Status updated Successfully", true);
+				return CommonUtils.prepareResponse(response, "Status updated Successfully", true);
 			} else {
-				return prepareResponse(response, "Status cannot be updated, please try again", false);
+				return CommonUtils.prepareResponse(response, "Status cannot be updated, please try again", false);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -559,14 +577,15 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> getProductList() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		try {
 			List<ProductListDTOAdmin> products = productDao.getAdminProductListDTO();
 			if (products.isEmpty()) {
-				return prepareResponse(response, "No products found.", false);
+				return CommonUtils.prepareResponse(response, "No products found.", false);
 			} else {
 				response.put("Products", products);
-				return prepareResponse(response, "Products fetched successfully.", true);
+				return CommonUtils.prepareResponse(response, "Products fetched successfully.", true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -576,16 +595,17 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public Map<String, Object> getProductById(@Valid long productId) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		try {
 			Optional<ProductEntity> productOpt = productDao.findById(productId);
 			if (productOpt.isEmpty()) {
-				return prepareResponse(response, "No product for the product id found.", false);
+				return CommonUtils.prepareResponse(response, "No product for the product id found.", false);
 			} else {
 				ProductEntity product = productOpt.get();
 
 				response.put("Product", product);
-				return prepareResponse(response, "Product fetched successfully.", true);
+				return CommonUtils.prepareResponse(response, "Product fetched successfully.", true);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -596,9 +616,12 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public Map<String, Object> updateProduct(@Valid UpdateProductDTO updateProductDTO) {
+		CommonUtils.logMethodEntry(this);
+		String email = CommonUtils.normalizeUsername(updateProductDTO.getEmail());
+		CommonUtils.ValidateUserWithToken(email);
 		Map<String, Object> response = new HashMap<>();
 
-		if (userNotExist(updateProductDTO.getEmail(), response)) {
+		if (userNotExist(email, response)) {
 			return response;
 		}
 
@@ -607,13 +630,13 @@ public class AdminServiceImpl implements AdminService {
 		List<Double> finalPrices = updateProductDTO.getFinalPrice();
 
 		if (!(prices.size() == discounts.size() && discounts.size() == finalPrices.size())) {
-			return prepareResponse(response, "Fields mismatch in price, discount and final price, please try again.",
-					false);
+			return CommonUtils.prepareResponse(response,
+					"Fields mismatch in price, discount and final price, please try again.", false);
 		}
 
 		if (prices.size() > 5 && discounts.size() > 5 && finalPrices.size() > 5) {
-			return prepareResponse(response, "A maximum of 5 different prices can be specified, please try again.",
-					false);
+			return CommonUtils.prepareResponse(response,
+					"A maximum of 5 different prices can be specified, please try again.", false);
 		}
 
 		for (int i = 0; i < prices.size(); i++) {
@@ -624,12 +647,12 @@ public class AdminServiceImpl implements AdminService {
 					.doubleValue();
 
 			if (discount < 0 || discount > 100) {
-				return prepareResponse(response, "Invalid Discount value at index " + i + ", product cannot be added.",
-						false);
+				return CommonUtils.prepareResponse(response,
+						"Invalid Discount value at index " + i + ", product cannot be added.", false);
 			}
 
 			if (roundedFinalPrice != finalPrices.get(i)) {
-				return prepareResponse(response, "Final price mismatch at index " + i + ". Expected: "
+				return CommonUtils.prepareResponse(response, "Final price mismatch at index " + i + ". Expected: "
 						+ roundedFinalPrice + ", Provided: " + finalPrices.get(i), false);
 			}
 		}
@@ -639,24 +662,24 @@ public class AdminServiceImpl implements AdminService {
 					updateProductDTO.getDescription(), updateProductDTO.getQuantity(), updateProductDTO.getCategory(),
 					updateProductDTO.getProductStatus().equalsIgnoreCase("ACTIVE") ? ProductStatus.ACTIVE
 							: ProductStatus.INACTIVE,
-					updateProductDTO.getEmail());
+					email);
 
 			int updatedProductStatus = productDao.updateProductById(product.getProductId(), product.getName(),
 					product.getDescription(), product.getAvailableQty(), product.getCategory(),
 					product.getProductStatus(), product.getUpdatedBy(), LocalDateTime.now());
 			if (updatedProductStatus == 0) {
-				return prepareResponse(response, "Failed to update the product. Please try again.", false);
+				return CommonUtils.prepareResponse(response, "Failed to update the product. Please try again.", false);
 			}
 
 			Optional<ProductEntity> updatedProductOpt = productDao.findById(product.getProductId());
 			if (updatedProductOpt.isEmpty()) {
-				return prepareResponse(response, "Product not found. Please try again.", false);
+				return CommonUtils.prepareResponse(response, "Product not found. Please try again.", false);
 			}
 			ProductEntity updatedProduct = updatedProductOpt.get();
 
 			int deletedResult = priceDao.deleteByProductId(updatedProduct.getProductId());
 			if (deletedResult == 0) {
-				return prepareResponse(response, "Failed to update the product. Please try again.", false);
+				return CommonUtils.prepareResponse(response, "Failed to update the product. Please try again.", false);
 			}
 
 			List<ProductPriceEntity> priceEntities = new ArrayList<>();
@@ -672,7 +695,7 @@ public class AdminServiceImpl implements AdminService {
 			priceDao.saveAll(priceEntities);
 
 			response.put("productId", updatedProduct.getProductId());
-			return prepareResponse(response, "Product updated successfully.", true);
+			return CommonUtils.prepareResponse(response, "Product updated successfully.", true);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -684,6 +707,7 @@ public class AdminServiceImpl implements AdminService {
 	@Transactional
 	public Map<String, Object> updateProductImage(Long productId, List<Long> imageIds, List<MultipartFile> images)
 			throws IOException {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 
 		if (productId == null || productId == 0) {
@@ -734,7 +758,8 @@ public class AdminServiceImpl implements AdminService {
 			for (Long imageId : imageIds) {
 				Optional<ProductImagesEntity> optionalImage = imageDao.findById(imageId);
 				if (optionalImage.isEmpty()) {
-					return prepareResponse(response, "Image could not be traced for image Id: " + imageId, false);
+					return CommonUtils.prepareResponse(response, "Image could not be traced for image Id: " + imageId,
+							false);
 				}
 
 				ProductImagesEntity oldImage = optionalImage.get();
@@ -752,7 +777,7 @@ public class AdminServiceImpl implements AdminService {
 				}
 			}
 
-			return prepareResponse(response, "Images updated successfully", true);
+			return CommonUtils.prepareResponse(response, "Images updated successfully", true);
 
 		} catch (Exception e) {
 			// Rollback Cloudinary uploads
@@ -773,6 +798,7 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public Map<String, Object> getAlertData() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		try {
 			long outOfStockQty = 0;
@@ -807,7 +833,7 @@ public class AdminServiceImpl implements AdminService {
 			response.put("inactiveUsers", inactiveUsers);
 			response.put("inactiveAdmins", inactiveAdmins);
 
-			return prepareResponse(response, "Alert Data fetched successfully.", true);
+			return CommonUtils.prepareResponse(response, "Alert Data fetched successfully.", true);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -818,6 +844,7 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public Map<String, Object> getAnalyticsSummary() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		try {
 			Double totalRevenue = Optional.ofNullable(orderDao.sumTotalAmount()).orElse(0.0);
@@ -825,7 +852,7 @@ public class AdminServiceImpl implements AdminService {
 			Long totalOrders = Optional.ofNullable(orderDao.count()).orElse(0L);
 
 			if (totalOrders == 0) {
-				return prepareResponse(response, "No orders available for analytics.", false);
+				return CommonUtils.prepareResponse(response, "No orders available for analytics.", false);
 			}
 
 			Double avgOrderValue = BigDecimal.valueOf(totalRevenue / totalOrders).setScale(2, RoundingMode.HALF_UP)
@@ -835,7 +862,7 @@ public class AdminServiceImpl implements AdminService {
 			response.put("totalProductsSold", totalProductsSold);
 			response.put("averageOrderValue", avgOrderValue);
 
-			return prepareResponse(response, "Analytics Summary fetched successfully.", true);
+			return CommonUtils.prepareResponse(response, "Analytics Summary fetched successfully.", true);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("Failed to fetch the Analytics Summary at the moment. Please try again.");
@@ -845,6 +872,7 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	@Transactional
 	public Map<String, Object> getAnalyticsGraphs() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		int year = Year.now().getValue();
 		try {
@@ -874,7 +902,7 @@ public class AdminServiceImpl implements AdminService {
 			response.put("monthlyUserOnboarded", monthlyUserOnboarded);
 			response.put("productsPerCategory", productsPerCategory);
 
-			return prepareResponse(response, "Analytics Graph Data fetched successfully.", true);
+			return CommonUtils.prepareResponse(response, "Analytics Graph Data fetched successfully.", true);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("Failed to fetch Analytics Graphs. Please try again.");

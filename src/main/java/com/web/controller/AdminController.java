@@ -21,6 +21,7 @@ import com.web.DTO.UpdateCategoryStatusDTO;
 import com.web.DTO.UpdateProductDTO;
 import com.web.DTO.UpdateStatusDTO;
 import com.web.service.AdminService;
+import com.web.utility.CommonUtils;
 import com.web.utility.DataConstants;
 
 import jakarta.validation.Valid;
@@ -34,6 +35,7 @@ public class AdminController {
 
 	@GetMapping("/getAllUsers")
 	public ResponseEntity<Map<String, Object>> getAllUsers() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -46,6 +48,7 @@ public class AdminController {
 
 	@GetMapping("/getAdmins")
 	public ResponseEntity<Map<String, Object>> getAdmins() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -57,6 +60,7 @@ public class AdminController {
 
 	@PostMapping("/updateAdminsStatus")
 	public ResponseEntity<Map<String, Object>> updateAdminsStatus(@RequestBody @Valid UpdateStatusDTO updateStatusDTO) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -68,6 +72,7 @@ public class AdminController {
 
 	@GetMapping("/getUsers")
 	public ResponseEntity<Map<String, Object>> getUsers() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -79,6 +84,7 @@ public class AdminController {
 
 	@PostMapping("/updateUsersStatus")
 	public ResponseEntity<Map<String, Object>> updateUsersStatus(@RequestBody @Valid UpdateStatusDTO updateStatusDTO) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -91,6 +97,7 @@ public class AdminController {
 	@PostMapping("/addCategory")
 	public ResponseEntity<Map<String, Object>> addCategory(@RequestParam String emailId, @RequestParam String category,
 			@RequestParam MultipartFile image) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 
 		try {
@@ -109,6 +116,7 @@ public class AdminController {
 	public ResponseEntity<Map<String, Object>> updateCategory(@RequestParam String emailId,
 			@RequestParam Long categoryId, @RequestParam String category,
 			@RequestParam(value = "Image", required = false) MultipartFile image) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 
 		try {
@@ -126,6 +134,7 @@ public class AdminController {
 	@PostMapping("/updateCategoryStatus")
 	public ResponseEntity<Map<String, Object>> updateCategoryStatus(
 			@RequestBody @Valid UpdateCategoryStatusDTO updateCategoryStatusDTO) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -137,6 +146,7 @@ public class AdminController {
 
 	@PostMapping("/addProduct")
 	public ResponseEntity<Map<String, Object>> addProduct(@RequestBody @Valid AddProductDTO addProductDTO) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -149,6 +159,7 @@ public class AdminController {
 	@PostMapping("/uploadImage")
 	public ResponseEntity<Map<String, Object>> uploadImage(@RequestParam Long productId,
 			@RequestParam("Images") List<MultipartFile> images) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 
 		try {
@@ -166,6 +177,7 @@ public class AdminController {
 	@PostMapping("/updateProductsStatus")
 	public ResponseEntity<Map<String, Object>> updateProductsStatus(
 			@RequestBody @Valid UpdateStatusDTO updateStatusDTO) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -177,6 +189,7 @@ public class AdminController {
 
 	@GetMapping("/getProductList")
 	public ResponseEntity<Map<String, Object>> getProductList() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -188,6 +201,7 @@ public class AdminController {
 
 	@GetMapping("/getProductById")
 	public ResponseEntity<Map<String, Object>> getProductById(@RequestParam @Valid long productId) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -199,6 +213,7 @@ public class AdminController {
 
 	@PostMapping("/updateProduct")
 	public ResponseEntity<Map<String, Object>> updateProduct(@RequestBody @Valid UpdateProductDTO updateProductDTO) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -212,6 +227,7 @@ public class AdminController {
 	public ResponseEntity<Map<String, Object>> updateProductImage(@RequestParam Long productId,
 			@RequestParam(required = false) List<Long> imageIds,
 			@RequestParam(value = "Images", required = false) List<MultipartFile> images) {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 
 		try {
@@ -228,6 +244,7 @@ public class AdminController {
 
 	@GetMapping("/getAlertData")
 	public ResponseEntity<Map<String, Object>> getAlertData() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -239,6 +256,7 @@ public class AdminController {
 
 	@GetMapping("/analytics/summary")
 	public ResponseEntity<Map<String, Object>> getAnalyticsSummary() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
@@ -250,6 +268,7 @@ public class AdminController {
 
 	@GetMapping("/analytics/graphs")
 	public ResponseEntity<Map<String, Object>> getAnalyticsGraphs() {
+		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 		response.put("message", DataConstants.SUCCESS_Message);
 		response.put("status", DataConstants.SUCCESS_STATUS);
