@@ -15,7 +15,6 @@ import com.web.DTO.ContactUsDTO;
 import com.web.DTO.UsernameDTO;
 import com.web.service.MemberService;
 import com.web.utility.CommonUtils;
-import com.web.utility.DataConstants;
 
 import jakarta.validation.Valid;
 
@@ -31,35 +30,21 @@ public class MemberController {
 		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
 
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", "pong");
-
-		return ResponseEntity.ok(response);
+		return ResponseEntity.ok(CommonUtils.prepareResponse(response, "pong", true));
 	}
 
 	@GetMapping("/landingPageData")
 	public ResponseEntity<Map<String, Object>> landingPageData() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.landingPageData());
+		Map<String, Object> response = memberService.landingPageData();
 
 		return ResponseEntity.ok(response);
 	}
 
-	@GetMapping("/exists")
+	@PostMapping("/exists")
 	public ResponseEntity<Map<String, Object>> userExistsCheck(@RequestBody @Valid UsernameDTO usernameDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.userExistsCheck(usernameDTO));
+		Map<String, Object> response = memberService.userExistsCheck(usernameDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -67,22 +52,14 @@ public class MemberController {
 	@PostMapping("/join")
 	public ResponseEntity<Map<String, Object>> joinApp(@RequestBody @Valid UsernameDTO usernameDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.joinApp(usernameDTO));
+		Map<String, Object> response = memberService.joinApp(usernameDTO);
 		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping("/contactUs")
 	public ResponseEntity<Map<String, Object>> contactUs(@RequestBody @Valid ContactUsDTO contactUsDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.contactUs(contactUsDTO));
+		Map<String, Object> response = memberService.contactUs(contactUsDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -90,11 +67,7 @@ public class MemberController {
 	@GetMapping("/getCategories")
 	public ResponseEntity<Map<String, Object>> getAllCategories() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.getAllCategories());
+		Map<String, Object> response = memberService.getAllCategories();
 
 		return ResponseEntity.ok(response);
 	}
@@ -102,11 +75,7 @@ public class MemberController {
 	@GetMapping("/getCategoryNames")
 	public ResponseEntity<Map<String, Object>> getCategoryNames() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.getCategoryNames());
+		Map<String, Object> response = memberService.getCategoryNames();
 
 		return ResponseEntity.ok(response);
 	}
@@ -114,11 +83,7 @@ public class MemberController {
 	@GetMapping("/getProducts")
 	public ResponseEntity<Map<String, Object>> getProducts() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", memberService.getProducts());
+		Map<String, Object> response = memberService.getProducts();
 
 		return ResponseEntity.ok(response);
 	}

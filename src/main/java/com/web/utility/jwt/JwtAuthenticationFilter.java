@@ -72,11 +72,4 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		response.getWriter().write("{\"message\": \"" + message + "\", \"status\": \"" + statusCode + "\"}");
 	}
 
-	// For WebSocket handshake bypass
-	@Override
-	protected boolean shouldNotFilter(HttpServletRequest request) {
-		CommonUtils.logMethodEntry(this);
-		String path = request.getRequestURI();
-		return path.startsWith("/ws");
-	}
 }

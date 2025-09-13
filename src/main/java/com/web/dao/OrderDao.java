@@ -11,7 +11,7 @@ import com.web.entity.OrderEntity;
 
 public interface OrderDao extends JpaRepository<OrderEntity, Long> {
 
-	List<OrderEntity> findByUserId(long userId);
+	List<OrderEntity> findByUserIdOrderByOrderIdDesc(long userId);
 
 	@Query("SELECT SUM(o.totalAmount) FROM OrderEntity o WHERE o.orderStatus = 'PLACED'")
 	Double sumTotalAmount();

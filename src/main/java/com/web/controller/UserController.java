@@ -1,6 +1,5 @@
 package com.web.controller;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,6 @@ import com.web.DTO.PlaceOrderDTO;
 import com.web.DTO.UpdateCartQtyDTO;
 import com.web.service.UserService;
 import com.web.utility.CommonUtils;
-import com.web.utility.DataConstants;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +31,7 @@ public class UserController {
 	@GetMapping("/getProductList")
 	public ResponseEntity<Map<String, Object>> getProductList() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.getProductList());
+		Map<String, Object> response = userService.getProductList();
 
 		return ResponseEntity.ok(response);
 	}
@@ -45,11 +39,7 @@ public class UserController {
 	@GetMapping("/getBestSellingProductList")
 	public ResponseEntity<Map<String, Object>> getBestSellingProductList() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.getBestSellingProductList());
+		Map<String, Object> response = userService.getBestSellingProductList();
 
 		return ResponseEntity.ok(response);
 	}
@@ -57,11 +47,7 @@ public class UserController {
 	@GetMapping("/getMostExpensiveProductList")
 	public ResponseEntity<Map<String, Object>> getMostExpensiveProductList() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.getMostExpensiveProductList());
+		Map<String, Object> response = userService.getMostExpensiveProductList();
 
 		return ResponseEntity.ok(response);
 	}
@@ -69,11 +55,7 @@ public class UserController {
 	@GetMapping("/getProductById")
 	public ResponseEntity<Map<String, Object>> getProductById(@RequestParam @Valid long productId) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.getProductById(productId));
+		Map<String, Object> response = userService.getProductById(productId);
 
 		return ResponseEntity.ok(response);
 	}
@@ -81,11 +63,7 @@ public class UserController {
 	@PostMapping("/addUpdateToCart")
 	public ResponseEntity<Map<String, Object>> addUpdateToCart(@RequestBody @Valid AddToCartDTO addToCartDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.addUpdateToCart(addToCartDTO));
+		Map<String, Object> response = userService.addUpdateToCart(addToCartDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -93,11 +71,7 @@ public class UserController {
 	@GetMapping("/getCart")
 	public ResponseEntity<Map<String, Object>> getCart(@RequestParam @Valid String email) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.getCart(email));
+		Map<String, Object> response = userService.getCart(email);
 
 		return ResponseEntity.ok(response);
 	}
@@ -105,11 +79,7 @@ public class UserController {
 	@GetMapping("/getCartQty")
 	public ResponseEntity<Map<String, Object>> getCartQty(@RequestParam @Valid String email) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.getCartQty(email));
+		Map<String, Object> response = userService.getCartQty(email);
 
 		return ResponseEntity.ok(response);
 	}
@@ -117,11 +87,7 @@ public class UserController {
 	@PostMapping("/updateCartQty")
 	public ResponseEntity<Map<String, Object>> updateCartQty(@RequestBody @Valid UpdateCartQtyDTO updateCartQtyDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.updateCartQty(updateCartQtyDTO));
+		Map<String, Object> response = userService.updateCartQty(updateCartQtyDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -129,11 +95,7 @@ public class UserController {
 	@PostMapping("/checkout")
 	public ResponseEntity<Map<String, Object>> placeOrder(@RequestBody @Valid PlaceOrderDTO placeOrderDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.placeOrder(placeOrderDTO));
+		Map<String, Object> response = userService.placeOrder(placeOrderDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -141,11 +103,7 @@ public class UserController {
 	@GetMapping("/getOrders")
 	public ResponseEntity<Map<String, Object>> getOrders(@RequestParam @Valid String email) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", userService.getOrders(email));
+		Map<String, Object> response = userService.getOrders(email);
 
 		return ResponseEntity.ok(response);
 	}

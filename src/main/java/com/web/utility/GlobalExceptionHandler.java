@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 		ex.getBindingResult().getFieldErrors()
 				.forEach(fieldError -> errors.put(fieldError.getField(), fieldError.getDefaultMessage()));
 
-		response.put("status", DataConstants.FAIL_STATUS);
+		response.put("status", "1");
 		response.put("message", "Validation failed");
 		response.put("errors", errors);
 
@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
 		Map<String, Object> response = new HashMap<>();
-		response.put("status", DataConstants.FAIL_STATUS);
+		response.put("status", "1");
 		response.put("message", ex.getMessage());
 		return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 	}

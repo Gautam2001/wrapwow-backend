@@ -40,12 +40,6 @@ public class CommonUtils {
 		}
 	}
 
-//	public static MessengerUsersEntity fetchUserIfExists(MessengerUsersDao messengerUserDao, String username,
-//			String message) {
-//		return messengerUserDao.getUserByUsername(username)
-//				.orElseThrow(() -> new AppException(message, HttpStatus.BAD_REQUEST));
-//	}
-
 	public static void logMethodEntry(Object caller) {
 		String className = caller.getClass().getSimpleName();
 		log.info("Inside {}.{}", className, getCallingMethodName());

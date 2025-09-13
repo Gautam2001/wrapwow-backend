@@ -22,7 +22,6 @@ import com.web.DTO.UpdateProductDTO;
 import com.web.DTO.UpdateStatusDTO;
 import com.web.service.AdminService;
 import com.web.utility.CommonUtils;
-import com.web.utility.DataConstants;
 
 import jakarta.validation.Valid;
 
@@ -36,11 +35,7 @@ public class AdminController {
 	@GetMapping("/getAllUsers")
 	public ResponseEntity<Map<String, Object>> getAllUsers() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.getAllUsers());
+		Map<String, Object> response = adminService.getAllUsers();
 
 		return ResponseEntity.ok(response);
 
@@ -49,11 +44,7 @@ public class AdminController {
 	@GetMapping("/getAdmins")
 	public ResponseEntity<Map<String, Object>> getAdmins() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.getAdmins());
+		Map<String, Object> response = adminService.getAdmins();
 
 		return ResponseEntity.ok(response);
 	}
@@ -61,11 +52,7 @@ public class AdminController {
 	@PostMapping("/updateAdminsStatus")
 	public ResponseEntity<Map<String, Object>> updateAdminsStatus(@RequestBody @Valid UpdateStatusDTO updateStatusDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.updateAdminsStatus(updateStatusDTO));
+		Map<String, Object> response = adminService.updateAdminsStatus(updateStatusDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -73,11 +60,7 @@ public class AdminController {
 	@GetMapping("/getUsers")
 	public ResponseEntity<Map<String, Object>> getUsers() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.getUsers());
+		Map<String, Object> response = adminService.getUsers();
 
 		return ResponseEntity.ok(response);
 	}
@@ -85,11 +68,7 @@ public class AdminController {
 	@PostMapping("/updateUsersStatus")
 	public ResponseEntity<Map<String, Object>> updateUsersStatus(@RequestBody @Valid UpdateStatusDTO updateStatusDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.updateUsersStatus(updateStatusDTO));
+		Map<String, Object> response = adminService.updateUsersStatus(updateStatusDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -99,16 +78,12 @@ public class AdminController {
 			@RequestParam MultipartFile image) {
 		CommonUtils.logMethodEntry(this);
 		Map<String, Object> response = new HashMap<>();
-
 		try {
-			response.put("message", DataConstants.SUCCESS_Message);
-			response.put("status", DataConstants.SUCCESS_STATUS);
-			response.put("resultString", adminService.addCategory(emailId, category, image));
+			response = adminService.addCategory(emailId, category, image);
 			return ResponseEntity.ok(response);
 		} catch (IOException e) {
-			response.put("message", DataConstants.FAIL_Message);
-			response.put("status", DataConstants.FAIL_STATUS);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(CommonUtils.prepareResponse(response, "API Call Failed", false));
 		}
 	}
 
@@ -120,14 +95,11 @@ public class AdminController {
 		Map<String, Object> response = new HashMap<>();
 
 		try {
-			response.put("message", DataConstants.SUCCESS_Message);
-			response.put("status", DataConstants.SUCCESS_STATUS);
-			response.put("resultString", adminService.updateCategory(emailId, categoryId, category, image));
+			response = adminService.updateCategory(emailId, categoryId, category, image);
 			return ResponseEntity.ok(response);
 		} catch (IOException e) {
-			response.put("message", DataConstants.FAIL_Message);
-			response.put("status", DataConstants.FAIL_STATUS);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(CommonUtils.prepareResponse(response, "API Call Failed", false));
 		}
 	}
 
@@ -135,11 +107,7 @@ public class AdminController {
 	public ResponseEntity<Map<String, Object>> updateCategoryStatus(
 			@RequestBody @Valid UpdateCategoryStatusDTO updateCategoryStatusDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.updateCategoryStatus(updateCategoryStatusDTO));
+		Map<String, Object> response = adminService.updateCategoryStatus(updateCategoryStatusDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -147,11 +115,7 @@ public class AdminController {
 	@PostMapping("/addProduct")
 	public ResponseEntity<Map<String, Object>> addProduct(@RequestBody @Valid AddProductDTO addProductDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.addProduct(addProductDTO));
+		Map<String, Object> response = adminService.addProduct(addProductDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -163,14 +127,11 @@ public class AdminController {
 		Map<String, Object> response = new HashMap<>();
 
 		try {
-			response.put("message", DataConstants.SUCCESS_Message);
-			response.put("status", DataConstants.SUCCESS_STATUS);
-			response.put("resultString", adminService.uploadImage(productId, images));
+			response = adminService.uploadImage(productId, images);
 			return ResponseEntity.ok(response);
 		} catch (IOException e) {
-			response.put("message", DataConstants.FAIL_Message);
-			response.put("status", DataConstants.FAIL_STATUS);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(CommonUtils.prepareResponse(response, "API Call Failed", false));
 		}
 	}
 
@@ -178,11 +139,7 @@ public class AdminController {
 	public ResponseEntity<Map<String, Object>> updateProductsStatus(
 			@RequestBody @Valid UpdateStatusDTO updateStatusDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.updateProductsStatus(updateStatusDTO));
+		Map<String, Object> response = adminService.updateProductsStatus(updateStatusDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -190,11 +147,7 @@ public class AdminController {
 	@GetMapping("/getProductList")
 	public ResponseEntity<Map<String, Object>> getProductList() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.getProductList());
+		Map<String, Object> response = adminService.getProductList();
 
 		return ResponseEntity.ok(response);
 	}
@@ -202,11 +155,7 @@ public class AdminController {
 	@GetMapping("/getProductById")
 	public ResponseEntity<Map<String, Object>> getProductById(@RequestParam @Valid long productId) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.getProductById(productId));
+		Map<String, Object> response = adminService.getProductById(productId);
 
 		return ResponseEntity.ok(response);
 	}
@@ -214,11 +163,7 @@ public class AdminController {
 	@PostMapping("/updateProduct")
 	public ResponseEntity<Map<String, Object>> updateProduct(@RequestBody @Valid UpdateProductDTO updateProductDTO) {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.updateProduct(updateProductDTO));
+		Map<String, Object> response = adminService.updateProduct(updateProductDTO);
 
 		return ResponseEntity.ok(response);
 	}
@@ -231,25 +176,18 @@ public class AdminController {
 		Map<String, Object> response = new HashMap<>();
 
 		try {
-			response.put("message", DataConstants.SUCCESS_Message);
-			response.put("status", DataConstants.SUCCESS_STATUS);
-			response.put("resultString", adminService.updateProductImage(productId, imageIds, images));
+			response = adminService.updateProductImage(productId, imageIds, images);
 			return ResponseEntity.ok(response);
 		} catch (IOException e) {
-			response.put("message", DataConstants.FAIL_Message);
-			response.put("status", DataConstants.FAIL_STATUS);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body(CommonUtils.prepareResponse(response, "API Call Failed", false));
 		}
 	}
 
 	@GetMapping("/getAlertData")
 	public ResponseEntity<Map<String, Object>> getAlertData() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.getAlertData());
+		Map<String, Object> response = adminService.getAlertData();
 
 		return ResponseEntity.ok(response);
 	}
@@ -257,11 +195,7 @@ public class AdminController {
 	@GetMapping("/analytics/summary")
 	public ResponseEntity<Map<String, Object>> getAnalyticsSummary() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.getAnalyticsSummary());
+		Map<String, Object> response = adminService.getAnalyticsSummary();
 
 		return ResponseEntity.ok(response);
 	}
@@ -269,11 +203,7 @@ public class AdminController {
 	@GetMapping("/analytics/graphs")
 	public ResponseEntity<Map<String, Object>> getAnalyticsGraphs() {
 		CommonUtils.logMethodEntry(this);
-		Map<String, Object> response = new HashMap<>();
-		response.put("message", DataConstants.SUCCESS_Message);
-		response.put("status", DataConstants.SUCCESS_STATUS);
-
-		response.put("resultString", adminService.getAnalyticsGraphs());
+		Map<String, Object> response = adminService.getAnalyticsGraphs();
 
 		return ResponseEntity.ok(response);
 	}
