@@ -23,6 +23,7 @@ import com.web.dao.ProductDao;
 import com.web.entity.CategoriesEntity;
 import com.web.entity.ContactRequestsEntity;
 import com.web.entity.MemberEntity;
+import com.web.entity.MemberEntity.Role;
 import com.web.entity.ProductEntity;
 import com.web.entity.ProductPriceEntity;
 import com.web.service.MemberService;
@@ -133,18 +134,27 @@ public class MemberServiceImpl implements MemberService {
 			return CommonUtils.prepareResponse(response, "Username reserved, Try with different username.", false);
 		}
 
-		Optional<String> nameOpt = callLoginService.checkUserExistsInLoginService(username);
+		Optional<HashMap<String, String>> nameOpt = callLoginService.checkUserExistsInLoginService(username);
 
 		if (nameOpt.isEmpty()) {
 			return CommonUtils.prepareResponse(response, "User does not exist, Please Signup.", false);
 		}
-		String name = nameOpt.get();
+
+		HashMap<String, String> userInfo = nameOpt.get();
+		String name = userInfo.get("name");
+		String role = userInfo.get("role");
 
 		CommonUtils.ensureUserDoesNotExist(memberDao, username);
 
 		MemberEntity user = new MemberEntity();
 		user.setEmail(username);
 		user.setName(name);
+
+		try {
+			user.setRole(Role.valueOf(role.toUpperCase()));
+		} catch (IllegalArgumentException e) {
+			throw new AppException("Invalid role: " + role, HttpStatus.BAD_REQUEST);
+		}
 		MemberEntity savedUser = memberDao.save(user);
 		if (savedUser == null || savedUser.getUserId() == null) {
 			throw new AppException("Failed to Join. Please try again.", HttpStatus.INTERNAL_SERVER_ERROR);

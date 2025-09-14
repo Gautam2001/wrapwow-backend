@@ -1,5 +1,6 @@
 package com.web.ServiceExt;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -15,7 +16,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.web.DTO.UsernameDTO;
+import com.web.DTO.LoginUsernameDTO;
 import com.web.utility.AppException;
 import com.web.utility.CommonUtils;
 
@@ -29,17 +30,17 @@ public class CallLoginService {
 	private String loginServiceBaseUrl;
 
 	@SuppressWarnings("rawtypes")
-	public Optional<String> checkUserExistsInLoginService(String username) {
+	public Optional<HashMap<String, String>> checkUserExistsInLoginService(String username) {
 		CommonUtils.logMethodEntry(this, "Calling login_microservice");
 
 		String loginServiceUrl = loginServiceBaseUrl + "/check-user-exists";
-		UsernameDTO usernameDTO = new UsernameDTO();
-		usernameDTO.setEmail(username);
+		LoginUsernameDTO usernameDTO = new LoginUsernameDTO();
+		usernameDTO.setUsername(username);
 
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			HttpEntity<UsernameDTO> request = new HttpEntity<>(usernameDTO, headers);
+			HttpEntity<LoginUsernameDTO> request = new HttpEntity<>(usernameDTO, headers);
 
 			ResponseEntity<Map> response = restTemplate.postForEntity(loginServiceUrl, request, Map.class);
 
@@ -48,9 +49,13 @@ public class CallLoginService {
 				if (body != null) {
 					Boolean exists = (Boolean) body.get("exists");
 					String name = (String) body.get("name");
+					String role = (String) body.get("role");
 
-					if (Boolean.TRUE.equals(exists) && name != null) {
-						return Optional.of(name);
+					if (Boolean.TRUE.equals(exists) && name != null && role != null) {
+						HashMap<String, String> result = new HashMap<>();
+						result.put("name", name);
+						result.put("role", role);
+						return Optional.of(result);
 					}
 				}
 				return Optional.empty();

@@ -1,6 +1,5 @@
 package com.web.dao;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,38 +22,10 @@ public interface MemberDao extends JpaRepository<MemberEntity, Long> {
 
 	Optional<MemberEntity> getUserByEmail(String email);
 
-	Optional<MemberEntity> getUserByEmailAndPassword(String email, String password);
-
-	Optional<MemberEntity> getUserByEmailAndOtp(String email, String otp);
-
-	Optional<MemberEntity> getUserByEmailAndOtpVerified(String email, boolean OtpVerified);
-
 	List<MemberEntity> findAllByUserIdInAndRole(List<Long> ids, Role user);
 
-	@Query("SELECT new com.web.DTO.GetUsersDTO(m.userId, m.name, m.email, m.dob, m.accountStatus) FROM MemberEntity m WHERE m.role = :role")
+	@Query("SELECT new com.web.DTO.GetUsersDTO(m.userId, m.name, m.email, m.accountStatus) FROM MemberEntity m WHERE m.role = :role")
 	List<GetUsersDTO> findAllByRole(@Param("role") Role role);
-
-	@Modifying
-	@Transactional
-	@Query("UPDATE MemberEntity m SET m.password = :password, m.otpVerified = false WHERE m.email = :email")
-	int updatePasswordOtpVerifiedByEmail(@Param("password") String password, @Param("email") String email);
-
-	@Modifying
-	@Transactional
-	@Query("UPDATE MemberEntity m SET m.password = :password WHERE m.email = :email")
-	int updatePasswordByEmail(@Param("password") String password, @Param("email") String email);
-
-	@Modifying
-	@Transactional
-	@Query("UPDATE MemberEntity m SET m.otp = :otp, m.otpGeneratedAt = :otpGeneratedAt, m.otpVerified = :otpVerified WHERE m.email = :email")
-	int updateOtpAndotpGeneratedAtByEmail(@Param("otp") String otp, @Param("otpGeneratedAt") LocalDateTime now,
-			@Param("otpVerified") boolean otpVerified, @Param("email") String email);
-
-	@Modifying
-	@Transactional
-	@Query("UPDATE MemberEntity m SET m.otpVerified = :otpVerified WHERE m.email = :email AND m.otp = :otp")
-	int updateOtpVerifiedByEmailAndOtp(@Param("otpVerified") boolean otpVerified, @Param("email") String email,
-			@Param("otp") String otp);
 
 	@Modifying
 	@Transactional

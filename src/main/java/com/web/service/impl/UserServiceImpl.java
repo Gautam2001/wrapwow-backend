@@ -2,7 +2,6 @@ package com.web.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -590,7 +589,7 @@ public class UserServiceImpl implements UserService {
 			if (orders.isEmpty()) {
 				return CommonUtils.prepareResponse(response, "No past orders found for the user.", false);
 			}
-			
+
 			List<Map<String, Object>> orderResponseList = new ArrayList<>();
 
 			for (OrderEntity order : orders) {

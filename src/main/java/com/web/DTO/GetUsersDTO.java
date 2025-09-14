@@ -1,13 +1,9 @@
 package com.web.DTO;
 
-import java.time.LocalDate;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.web.entity.MemberEntity.AccountStatus;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,10 +24,6 @@ public class GetUsersDTO {
 	@NotBlank(message = "Email cannot be blank")
 	@Email(message = "Invalid Email format")
 	private String email;
-
-	@NotNull(message = "DOB cannot be blank")
-	@JsonFormat(pattern = "dd/MM/yyyy")
-	private LocalDate dob;
 
 	@NotBlank(message = "Account Status cannot be blank")
 	private AccountStatus accountStatus;
