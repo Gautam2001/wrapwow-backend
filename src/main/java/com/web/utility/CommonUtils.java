@@ -40,6 +40,10 @@ public class CommonUtils {
 		}
 	}
 
+	public static MemberEntity fetchUserIfExists(MemberDao memberDao, String username, String message) {
+		return memberDao.getUserByEmail(username).orElseThrow(() -> new AppException(message, HttpStatus.BAD_REQUEST));
+	}
+
 	public static void logMethodEntry(Object caller) {
 		String className = caller.getClass().getSimpleName();
 		log.info("Inside {}.{}", className, getCallingMethodName());

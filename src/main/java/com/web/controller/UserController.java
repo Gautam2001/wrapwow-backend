@@ -108,4 +108,24 @@ public class UserController {
 		return ResponseEntity.ok(response);
 	}
 
+	// AI Bot related Controllers Start
+//	@PostMapping("/send-message")
+//	public ResponseEntity<Map<String, Object>> sendMessage(@RequestBody @Valid SendMessageDTO sendMessageDTO,
+//			@RequestHeader(value = "Authorization") String token) {
+//		CommonUtils.logMethodEntry(this);
+//
+//		Map<String, Object> response = userService.sendMessage(sendMessageDTO, token);
+//
+//		return ResponseEntity.ok(response);
+//	}
+//
+//	@PostMapping("/chat-history")
+//	public ResponseEntity<Map<String, Object>> getChatHistory(@RequestBody @Valid ChatHistoryDTO chatHistoryDTO) {
+//		CommonUtils.logMethodEntry(this);
+//
+//		Map<String, Object> response = userService.getChatHistory(chatHistoryDTO);
+//
+//		return ResponseEntity.ok(response);
+//	}
+
 }

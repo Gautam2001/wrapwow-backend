@@ -16,11 +16,11 @@
 //import org.springframework.web.client.HttpClientErrorException;
 //import org.springframework.web.client.RestTemplate;
 //
-//import com.Messenger.Dto.BotRequestDTO;
-//import com.Messenger.Dto.MessageDTO;
-//import com.Messenger.Entity.MessageEntity;
-//import com.Messenger.Utility.AppException;
-//import com.Messenger.Utility.CommonUtils;
+//import com.web.DTO.BotRequestDTO;
+//import com.web.DTO.MessageDTO;
+//import com.web.entity.MessageEntity;
+//import com.web.utility.AppException;
+//import com.web.utility.CommonUtils;
 //
 //@Service
 //public class CallAIBotService {
@@ -34,7 +34,7 @@
 //	private String aiBotServiceBaseUrl;
 //
 //	@SuppressWarnings("rawtypes")
-//	public String getGenericBotReply(List<MessageEntity> lastNMessages, String currentMessage, String token) {
+//	public String getSpecificBotReply(List<MessageEntity> lastNMessages, String currentMessage, String token) {
 //		CommonUtils.logMethodEntry(this, "Calling AIBot_microservice");
 //
 //		String aiBotServiceUrl = aiBotServiceBaseUrl + "/generic";

@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.web.DTO.AddToCartDTO;
 import com.web.DTO.PlaceOrderDTO;
@@ -38,11 +39,18 @@ import com.web.entity.ProductPriceEntity;
 import com.web.service.UserService;
 import com.web.utility.CommonUtils;
 
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 @Service
 public class UserServiceImpl implements UserService {
+
+//	public static final String BOT_USERNAME = "aibot@wrap-wow.com";
+//
+//	@Autowired
+//	CallAIBotService callAIBotService;
+//
+//	@Autowired
+//	private MessageDao messageDao;
 
 	@Autowired
 	private MemberDao memberDao;
@@ -630,5 +638,78 @@ public class UserServiceImpl implements UserService {
 			throw new RuntimeException("Failed to fetch orders. Please try again.");
 		}
 	}
+
+	// AI Bot related ServiceImpl Start
+//	@Override
+//	@Transactional(rollbackFor = Exception.class)
+//	public Map<String, Object> sendMessage(@Valid SendMessageDTO sendMessageDTO, String token) {
+//		Map<String, Object> response = new HashMap<>();
+//		String senderUsername = CommonUtils.normalizeUsername(sendMessageDTO.getSender());
+//		CommonUtils.ValidateUserWithToken(senderUsername);
+//		CommonUtils.logMethodEntry(this, "Send Message Request from: " + senderUsername);
+//
+//		CommonUtils.fetchUserIfExists(memberDao, senderUsername,
+//				"User does not exist, signup first.");
+//
+//		MessageEntity message = new MessageEntity(senderUsername, BOT_USERNAME, sendMessageDTO.getContent());
+//		MessageEntity savedMessage = messageDao.save(message);
+//		if (savedMessage == null || savedMessage.getMessageId() == null) {
+//			throw new AppException("Failed to save message in Database. Please try again.",
+//					HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//
+//		CommonUtils.logMethodEntry(this, "Sender Message saved to Database.");
+//		response.put("messageId", savedMessage.getMessageId());
+//		response.put("messageContent", savedMessage.getContent());
+//
+//		// get last 6 messages
+//		List<MessageEntity> lastNMessages = messageDao.getConversationBetweenUsers(senderUsername, BOT_USERNAME, null,
+//				PageRequest.of(0, 7));
+//
+//		// get Intent using rule based and AI //also log in some table for rule based fail
+//		// get db data from the Intent
+//
+//		// Call AI bot service with last N messages, Intent data
+//		String reply = callAIBotService.getSpecificBotReply(lastNMessages, savedMessage.getContent(), token);
+//		if (reply == null || reply.isBlank()) {
+//			reply = "Sorry, I couldn’t understand that. Please try again.";
+//		}
+//
+//		MessageEntity replyMessage = new MessageEntity(BOT_USERNAME, senderUsername, reply);
+//		MessageEntity savedReply = messageDao.save(replyMessage);
+//		if (savedReply == null || savedReply.getMessageId() == null) {
+//			throw new AppException("Failed to save Bot Reply in Database. Please try again.",
+//					HttpStatus.INTERNAL_SERVER_ERROR);
+//		}
+//
+//		CommonUtils.logMethodEntry(this, "Bot reply saved to Database.");
+//		response.put("botMessageId", savedReply.getMessageId());
+//		response.put("botContent", savedReply.getContent());
+//
+//		return CommonUtils.prepareResponse(response, "message sent successfully.", true);
+//	}
+//
+//	@Override
+//	public Map<String, Object> getChatHistory(@Valid ChatHistoryDTO chatHistoryDTO) {
+//		String username = CommonUtils.normalizeUsername(chatHistoryDTO.getUsername());
+//		CommonUtils.ValidateUserWithToken(username);
+//		CommonUtils.logMethodEntry(this, "Get chat history between: " + username + " and " + BOT_USERNAME);
+//
+//		CommonUtils.fetchUserIfExists(memberDao, username, "User does not exist, signup first.");
+//
+//		List<MessageEntity> messages = messageDao.getConversationBetweenUsers(username, BOT_USERNAME,
+//				chatHistoryDTO.getCursorId(), PageRequest.of(0, 25));
+//		Collections.reverse(messages);
+//
+//		Long nextCursorId = -1L;
+//		if (!messages.isEmpty()) {
+//			nextCursorId = messages.get(0).getMessageId();
+//		}
+//
+//		Map<String, Object> response = new HashMap<>();
+//		response.put("chatHistory", messages);
+//		response.put("nextCursorId", nextCursorId);
+//		return CommonUtils.prepareResponse(response, "Chat history fetched successfully", true);
+//	}
 
 }

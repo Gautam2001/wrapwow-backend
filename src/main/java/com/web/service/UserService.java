@@ -33,4 +33,9 @@ public interface UserService {
 
 	Map<String, Object> getOrders(@Valid String email);
 
+	// AI Bot related Service Start
+//	Map<String, Object> sendMessage(@Valid SendMessageDTO sendMessageDTO, String token);
+//
+//	Map<String, Object> getChatHistory(@Valid ChatHistoryDTO chatHistoryDTO);
+
 }
