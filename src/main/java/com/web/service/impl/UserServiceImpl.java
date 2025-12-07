@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -76,12 +75,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private OrderItemDao orderItemDao;
-	
+
 	@Autowired
 	private EmailService emailService;
-	
-	@Value("${spring.mail.username}")
-	private String email;
 
 	private boolean userNotExist(String email, Map<String, Object> response) {
 		CommonUtils.logMethodEntry(this);
@@ -574,10 +570,10 @@ public class UserServiceImpl implements UserService {
 				product.setAvailableQty(product.getAvailableQty() - item.getQuantity());
 				product.setTotalOrderedQty(product.getTotalOrderedQty() + item.getQuantity());
 				productDao.save(product);
-				
+
 				try {
 
-					emailService.sendOrderConfEmail(email, user.getName(), user.getEmail());
+					emailService.sendOrderConfEmail(user.getName(), user.getEmail());
 				} catch (Exception e) {
 					throw new AppException("Email Failed. Feedback stored in Database", HttpStatus.BAD_REQUEST);
 				}

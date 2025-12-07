@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -52,12 +51,9 @@ public class MemberServiceImpl implements MemberService {
 
 	@Autowired
 	private ContactRequestDao contactDao;
-	
+
 	@Autowired
 	private EmailService emailService;
-	
-	@Value("${spring.mail.username}")
-	private String email;
 
 	public static final String BOT_USERNAME = "aibot@wrap-wow.com";
 
@@ -186,7 +182,7 @@ public class MemberServiceImpl implements MemberService {
 			}
 			try {
 
-				emailService.sendFeedbackEmail(email, contactUsDTO.getName(), contactUsDTO.getEmail(),
+				emailService.sendFeedbackEmail(contactUsDTO.getName(), contactUsDTO.getEmail(),
 						contactUsDTO.getMessage());
 			} catch (Exception e) {
 				throw new AppException("Email Failed. Feedback stored in Database", HttpStatus.BAD_REQUEST);
