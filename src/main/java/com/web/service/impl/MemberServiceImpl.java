@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ import com.web.entity.ProductPriceEntity;
 import com.web.service.MemberService;
 import com.web.utility.AppException;
 import com.web.utility.CommonUtils;
+import com.web.utility.EmailService;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -50,6 +52,12 @@ public class MemberServiceImpl implements MemberService {
 
 	@Autowired
 	private ContactRequestDao contactDao;
+	
+	@Autowired
+	private EmailService emailService;
+	
+	@Value("${spring.mail.username}")
+	private String email;
 
 	public static final String BOT_USERNAME = "aibot@wrap-wow.com";
 
@@ -175,6 +183,13 @@ public class MemberServiceImpl implements MemberService {
 			ContactRequestsEntity contactSaved = contactDao.save(contactRequestsEntity);
 			if (contactSaved == null) {
 				return CommonUtils.prepareResponse(response, "Failed to save the message. Please try again.", false);
+			}
+			try {
+
+				emailService.sendFeedbackEmail(email, contactUsDTO.getName(), contactUsDTO.getEmail(),
+						contactUsDTO.getMessage());
+			} catch (Exception e) {
+				throw new AppException("Email Failed. Feedback stored in Database", HttpStatus.BAD_REQUEST);
 			}
 
 			return CommonUtils.prepareResponse(response, " Thank you for the Feedback!", true);
